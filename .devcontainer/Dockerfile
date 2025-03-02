@@ -137,44 +137,37 @@ ENV SDKMAN_DIR=/usr/local/sdkman
 RUN if [ "${INSTALL_JAVA}" = "true" ]; then \
     # Install dependencies needed by SDKMAN
     apt-get update && apt-get install -y zip unzip \
-    # Create a script file for SDKMAN installation and usage
-    && mkdir -p /tmp/scripts \
-    && echo '#!/bin/bash' > /tmp/scripts/install_sdkman.sh \
-    && echo 'SDKMAN_DIR="/root/.sdkman"' >> /tmp/scripts/install_sdkman.sh \
-    && echo 'export SDKMAN_DIR' >> /tmp/scripts/install_sdkman.sh \
-    && echo 'curl -s "https://get.sdkman.io" | bash' >> /tmp/scripts/install_sdkman.sh \
-    && echo 'if [ ! -d "$SDKMAN_DIR" ]; then' >> /tmp/scripts/install_sdkman.sh \
-    && echo '    echo "SDKMAN installation failed. Directory $SDKMAN_DIR does not exist."' >> /tmp/scripts/install_sdkman.sh \
-    && echo '    exit 1' >> /tmp/scripts/install_sdkman.sh \
-    && echo 'fi' >> /tmp/scripts/install_sdkman.sh \
-    && echo 'if [ ! -f "$SDKMAN_DIR/bin/sdkman-init.sh" ]; then' >> /tmp/scripts/install_sdkman.sh \
-    && echo '    echo "SDKMAN initialization script not found at $SDKMAN_DIR/bin/sdkman-init.sh"' >> /tmp/scripts/install_sdkman.sh \
-    && echo '    ls -la $SDKMAN_DIR/bin' >> /tmp/scripts/install_sdkman.sh \
-    && echo '    exit 1' >> /tmp/scripts/install_sdkman.sh \
-    && echo 'fi' >> /tmp/scripts/install_sdkman.sh \
-    && echo 'source "$SDKMAN_DIR/bin/sdkman-init.sh"' >> /tmp/scripts/install_sdkman.sh \
-    && echo 'sdk install java $1-open' >> /tmp/scripts/install_sdkman.sh \
-    && echo 'if [ "$2" = "true" ]; then' >> /tmp/scripts/install_sdkman.sh \
-    && echo '    sdk install kotlin $3' >> /tmp/scripts/install_sdkman.sh \
-    && echo 'fi' >> /tmp/scripts/install_sdkman.sh \
-    # Make the script executable and run it
-    && chmod +x /tmp/scripts/install_sdkman.sh \
-    && bash /tmp/scripts/install_sdkman.sh "${JAVA_VERSION}" "${INSTALL_KOTLIN}" "${VERSION_KOTLIN}" \
-    # Create the target directory and copy files
+    # Create SDKMAN directory with correct permissions first
     && mkdir -p ${SDKMAN_DIR} \
-    && cp -R /root/.sdkman/* ${SDKMAN_DIR}/ \
-    # Fix paths in configuration
-    && sed -i "s|/root/.sdkman|${SDKMAN_DIR}|g" ${SDKMAN_DIR}/etc/config \
-    # Set correct permissions
     && chown -R ${USERNAME}:${USERNAME} ${SDKMAN_DIR} \
     && chmod -R 755 ${SDKMAN_DIR} \
+    # Create a setup script for SDKMAN that will be run as the vscode user
+    && { \
+        echo '#!/bin/bash'; \
+        echo "export SDKMAN_DIR=${SDKMAN_DIR}"; \
+        echo 'curl -s "https://get.sdkman.io" | bash'; \
+        echo "sed -i -e 's|/home/${USERNAME}/.sdkman|${SDKMAN_DIR}|g' ${SDKMAN_DIR}/etc/config"; \
+        echo "source ${SDKMAN_DIR}/bin/sdkman-init.sh"; \
+        echo "sdk install java ${JAVA_VERSION}-open"; \
+        echo "if [ \"${INSTALL_KOTLIN}\" = \"true\" ]; then"; \
+        echo "    sdk install kotlin ${VERSION_KOTLIN}"; \
+        echo "fi"; \
+    } > /tmp/install_sdkman.sh \
+    && chmod +x /tmp/install_sdkman.sh \
+    # Run the installation as the vscode user
+    && su ${USERNAME} -c "bash /tmp/install_sdkman.sh" \
+    # Fix any remaining references to the default location
+    && find ${SDKMAN_DIR} -type f -exec sed -i -e "s|/home/${USERNAME}/.sdkman|${SDKMAN_DIR}|g" {} \; 2>/dev/null || true \
     # Add SDKMAN to the bash environment
     && echo "export SDKMAN_DIR=${SDKMAN_DIR}" >> /etc/bash.bashrc \
     && echo "source ${SDKMAN_DIR}/bin/sdkman-init.sh" >> /etc/bash.bashrc \
     && echo "export SDKMAN_DIR=${SDKMAN_DIR}" >> /home/${USERNAME}/.bashrc \
     && echo "source ${SDKMAN_DIR}/bin/sdkman-init.sh" >> /home/${USERNAME}/.bashrc \
+    # Double-check permissions
+    && chown -R ${USERNAME}:${USERNAME} ${SDKMAN_DIR} \
+    && chmod -R 755 ${SDKMAN_DIR} \
     # Cleanup
-    && rm -rf /tmp/scripts \
+    && rm -f /tmp/install_sdkman.sh \
     && apt-get clean && rm -rf /var/lib/apt/lists/*; \
     fi
 
@@ -186,33 +179,36 @@ RUN if [ "${INSTALL_GO}" = "true" ]; then \
     apt-get update && export DEBIAN_FRONTEND=noninteractive \
     && apt-get -y install bison \
     && apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/* \
-    # Download the installer script first and install GVM to the default location
-    && curl -s -S -L https://raw.githubusercontent.com/moovweb/gvm/master/binscripts/gvm-installer -o /tmp/gvm-installer \
-    && chmod +x /tmp/gvm-installer \
-    # Install GVM to the default location (/root/.gvm) first
-    && bash /tmp/gvm-installer \
-    && rm /tmp/gvm-installer \
-    # Then copy it to our desired location
+    # Create GVM directory with correct permissions first
     && mkdir -p ${GVM_DIR} \
-    && cp -R /root/.gvm/* ${GVM_DIR}/ \
-    # Set correct permissions
     && chown -R ${USERNAME}:${USERNAME} ${GVM_DIR} \
     && chmod -R 755 ${GVM_DIR} \
-    # Create a temporary script to source GVM and install Go
-    && mkdir -p /tmp/scripts \
-    && echo '#!/bin/bash' > /tmp/scripts/install_go.sh \
-    && echo "source ${GVM_DIR}/scripts/gvm" >> /tmp/scripts/install_go.sh \
-    && echo "gvm install go${VERSION_GO} -B" >> /tmp/scripts/install_go.sh \
-    && echo "gvm use go${VERSION_GO} --default" >> /tmp/scripts/install_go.sh \
-    && chmod +x /tmp/scripts/install_go.sh \
-    && bash -c "/tmp/scripts/install_go.sh" \
+    # Use a custom installation to install GVM directly to the correct location
+    && git clone https://github.com/moovweb/gvm ${GVM_DIR} \
+    # Install Go binaries directly
+    && su ${USERNAME} -c "cd ${GVM_DIR} && ./binscripts/gvm-installer" \
+    # Fix any remaining references to /root/.gvm in the scripts
+    && find ${GVM_DIR} -type f -exec sed -i -e "s|/root/.gvm|${GVM_DIR}|g" {} \; \
+    # Create a shell script to install Go
+    && { \
+        echo '#!/bin/bash'; \
+        echo "source ${GVM_DIR}/scripts/gvm"; \
+        echo "gvm install go${VERSION_GO} -B"; \
+        echo "gvm use go${VERSION_GO} --default"; \
+    } > /tmp/install_go.sh \
+    && chmod +x /tmp/install_go.sh \
+    # Install Go as the vscode user
+    && su ${USERNAME} -c "bash /tmp/install_go.sh" \
     # Add GVM to the bash environment
     && echo "export GVM_DIR=${GVM_DIR}" >> /etc/bash.bashrc \
     && echo "source ${GVM_DIR}/scripts/gvm" >> /etc/bash.bashrc \
     && echo "export GVM_DIR=${GVM_DIR}" >> /home/${USERNAME}/.bashrc \
     && echo "source ${GVM_DIR}/scripts/gvm" >> /home/${USERNAME}/.bashrc \
+    # Ensure all files have the correct ownership and permissions
+    && chown -R ${USERNAME}:${USERNAME} ${GVM_DIR} \
+    && chmod -R 755 ${GVM_DIR} \
     # Cleanup
-    && rm -rf /tmp/scripts; \
+    && rm -f /tmp/install_go.sh; \
     fi
 
 # [Option] Install RSVM and Rust
@@ -290,6 +286,48 @@ RUN echo "source ${NVM_DIR}/nvm.sh" >> /etc/bash.bashrc \
     && echo 'export BUN_INSTALL="/usr/local/share/bun"' >> /etc/bash.bashrc \
     && echo 'export PATH="$BUN_INSTALL/bin:$PATH"' >> /etc/bash.bashrc \
     && echo 'export PATH="/usr/local/bin/deno:$PATH"' >> /etc/bash.bashrc
+
+# Create verification script to help debug environment issues
+RUN { \
+    echo '#!/bin/bash'; \
+    echo 'echo "Verifying environment configuration..."'; \
+    echo 'echo "User: $(whoami)"'; \
+    echo 'echo "SDKMAN_DIR: $SDKMAN_DIR"'; \
+    echo 'echo "GVM_DIR: $GVM_DIR"'; \
+    echo 'echo "RSVM_DIR: $RSVM_DIR"'; \
+    echo 'echo "NVM_DIR: $NVM_DIR"'; \
+    echo 'echo "BUN_INSTALL: $BUN_INSTALL"'; \
+    echo ''; \
+    echo '# Check SDKMAN'; \
+    echo 'if [ -d "$SDKMAN_DIR" ]; then'; \
+    echo '  echo "SDKMAN installation directory exists"'; \
+    echo '  if [ -f "$SDKMAN_DIR/bin/sdkman-init.sh" ]; then'; \
+    echo '    echo "SDKMAN initialization script exists"'; \
+    echo '    ls -la "$SDKMAN_DIR/bin/sdkman-init.sh"'; \
+    echo '  else'; \
+    echo '    echo "ERROR: SDKMAN initialization script not found"'; \
+    echo '  fi'; \
+    echo 'else'; \
+    echo '  echo "ERROR: SDKMAN directory does not exist"'; \
+    echo 'fi'; \
+    echo ''; \
+    echo '# Check GVM'; \
+    echo 'if [ -d "$GVM_DIR" ]; then'; \
+    echo '  echo "GVM installation directory exists"'; \
+    echo '  if [ -f "$GVM_DIR/scripts/gvm" ]; then'; \
+    echo '    echo "GVM initialization script exists"'; \
+    echo '    ls -la "$GVM_DIR/scripts/gvm"'; \
+    echo '  else'; \
+    echo '    echo "ERROR: GVM initialization script not found"'; \
+    echo '  fi'; \
+    echo 'else'; \
+    echo '  echo "ERROR: GVM directory does not exist"'; \
+    echo 'fi'; \
+    echo ''; \
+    echo 'echo "Environment verification complete"'; \
+    } > /usr/local/bin/verify-env \
+    && chmod +x /usr/local/bin/verify-env \
+    && chown ${USERNAME}:${USERNAME} /usr/local/bin/verify-env
 
 # Setup environment variables
 ENV PATH="/usr/local/bin:${PATH}"

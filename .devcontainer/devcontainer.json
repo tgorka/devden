@@ -1,6 +1,4 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the README at:
-// https://github.com/microsoft/vscode-dev-containers/tree/v0.187.0/containers/python-3
-// https://intellij-support.jetbrains.com/hc/en-us/community/posts/19485533579794-Trying-to-use-Dev-Containers-IDE-Backend-keeps-re-downloading-but-never-installs
 {
 	"name": "devden-0.0.5",
 	"dockerComposeFile": "compose.yaml",
@@ -21,8 +19,10 @@
 		"git": "git config --global --add safe.directory ${containerWorkspaceFolder}",
 		"git-user-name": "git config --global user.name \"tgorka\"",
 		"git-user-email": "git config --global user.email \"tomasz@gorka.org.pl\"",
-		// Fix permissions for SDKMAN and GVM directories
-		"fix-permissions": "if [ -d ${SDKMAN_DIR} ]; then sudo chown -R ${remoteUser}:${remoteUser} ${SDKMAN_DIR} && sudo chmod -R 755 ${SDKMAN_DIR}; fi && if [ -d ${GVM_DIR} ]; then sudo chown -R ${remoteUser}:${remoteUser} ${GVM_DIR} && sudo chmod -R 755 ${GVM_DIR}; fi"
+		// Fix permissions for SDKMAN and GVM directories with improved error handling
+		"fix-permissions": "echo 'Fixing permissions for development directories...' && for dir in ${SDKMAN_DIR} ${GVM_DIR} ${RSVM_DIR} ${NVM_DIR}; do if [ -d \"$dir\" ]; then echo \"Setting permissions for $dir\"; sudo chown -R ${remoteUser}:${remoteUser} \"$dir\" 2>/dev/null || true; sudo chmod -R 755 \"$dir\" 2>/dev/null || true; else echo \"Directory $dir does not exist, skipping\"; fi; done",
+		// Verify environment configuration
+		"verify-env": "/usr/local/bin/verify-env || echo 'Verification script completed with errors'"
 	},
 
 	// Comment out connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
@@ -53,6 +53,10 @@
 				"[python]": {
 					"editor.defaultFormatter": "ms-python.black-formatter",
 					"editor.formatOnSave": true
+				},
+				// Configure cursor-stats to run locally instead of in container
+				"remote.extensionKind": {
+					"dwtexe.cursor-stats": ["ui"]
 				}
 				// Extension settings moved to .vscode/settings.json
 			},
@@ -88,6 +92,7 @@
 				"aaron-bond.better-comments",
 				"alefragnani.bookmarks",
 				"christian-kohler.path-intellisense",
+				// Cursor-stats is configured to run in UI mode via remote.extensionKind setting
 				"dwtexe.cursor-stats",
 				"editorconfig.editorconfig",
 				"figma.figma-vscode-extension",
@@ -119,8 +124,6 @@
 				"orta.vscode-react-native-storybooks",
 				"rvest.vs-code-prettier-eslint",
 				"streetsidesoftware.code-spell-checker",
-				"visualstudioexptteam.intellicode-api-usage-examples",
-				"visualstudioexptteam.vscodeintellicode",
 				"wix.vscode-import-cost",
 
 				// API & Development Tools
