@@ -14,13 +14,15 @@
 	// Use 'postCreateCommand' to run commands after the container is created.
 	// "postCreateCommand": "pip3 install --user -r requirements.txt",
 	// prevent git ownership
-	"postCreateCommand": "echo 'source ${NVM_DIR}/nvm.sh' >> ~/.bashrc && echo 'export PYTHON_ROOT=\"${PYTHON_ROOT}\" && export PATH=\"${PYTHON_ROOT}/bin:$PATH\"' >> ~/.bashrc && echo 'export BUN_INSTALL=\"/usr/local/share/bun\" && export PATH=\"$BUN_INSTALL/bin:$PATH\"' >> ~/.bashrc && echo 'eval \"$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)\" 2>/dev/null || true' >> ~/.bashrc && echo 'source ${SDKMAN_DIR}/bin/sdkman-init.sh' >> ~/.bashrc && echo 'source ${GVM_DIR}/scripts/gvm' >> ~/.bashrc && echo 'source ${RSVM_DIR}/rsvm.sh' >> ~/.bashrc",
+	"postCreateCommand": "echo 'source ${NVM_DIR}/nvm.sh' >> ~/.bashrc && echo 'export PYTHON_ROOT=\"${PYTHON_ROOT}\" && export PATH=\"${PYTHON_ROOT}/bin:$PATH\"' >> ~/.bashrc && echo 'export BUN_INSTALL=\"/usr/local/share/bun\" && export PATH=\"$BUN_INSTALL/bin:$PATH\"' >> ~/.bashrc && echo 'eval \"$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)\" 2>/dev/null || true' >> ~/.bashrc && echo 'export SDKMAN_DIR=\"${SDKMAN_DIR}\" && source ${SDKMAN_DIR}/bin/sdkman-init.sh' >> ~/.bashrc && echo 'export GVM_DIR=\"${GVM_DIR}\" && source ${GVM_DIR}/scripts/gvm' >> ~/.bashrc && echo 'source ${RSVM_DIR}/rsvm.sh' >> ~/.bashrc",
 	"postStartCommand": {
 		// Make the Docker socket permission change more robust with error handling
 		"docker-permissions": "if [ -e /var/run/docker.sock ]; then sudo chown -Rf ${remoteUser}:${remoteUser} /var/run/docker.sock || true; else echo 'Docker socket not found. Skipping permission change.'; fi",
 		"git": "git config --global --add safe.directory ${containerWorkspaceFolder}",
 		"git-user-name": "git config --global user.name \"tgorka\"",
-		"git-user-email": "git config --global user.email \"tomasz@gorka.org.pl\""
+		"git-user-email": "git config --global user.email \"tomasz@gorka.org.pl\"",
+		// Fix permissions for SDKMAN and GVM directories
+		"fix-permissions": "if [ -d ${SDKMAN_DIR} ]; then sudo chown -R ${remoteUser}:${remoteUser} ${SDKMAN_DIR} && sudo chmod -R 755 ${SDKMAN_DIR}; fi && if [ -d ${GVM_DIR} ]; then sudo chown -R ${remoteUser}:${remoteUser} ${GVM_DIR} && sudo chmod -R 755 ${GVM_DIR}; fi"
 	},
 
 	// Comment out connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.

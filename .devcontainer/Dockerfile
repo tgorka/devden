@@ -133,40 +133,86 @@ ARG INSTALL_JAVA="false"
 ARG JAVA_VERSION="23"
 ARG INSTALL_KOTLIN="false"
 ARG VERSION_KOTLIN="1.9.22"
-ENV SDKMAN_DIR=/root/.sdkman
+ENV SDKMAN_DIR=/usr/local/sdkman
 RUN if [ "${INSTALL_JAVA}" = "true" ]; then \
-    curl -s "https://get.sdkman.io" | bash \
-    && bash -c "source ${SDKMAN_DIR}/bin/sdkman-init.sh && sdk install java ${JAVA_VERSION}-open" \
-    && if [ "${INSTALL_KOTLIN}" = "true" ]; then \
-        bash -c "source ${SDKMAN_DIR}/bin/sdkman-init.sh && sdk install kotlin ${VERSION_KOTLIN}"; \
-       fi \
-    # Create the target directory and copy files over
-    && mkdir -p /usr/local/sdkman \
-    && cp -R ${SDKMAN_DIR}/* /usr/local/sdkman/ \
+    # Install dependencies needed by SDKMAN
+    apt-get update && apt-get install -y zip unzip \
+    # Create a script file for SDKMAN installation and usage
+    && mkdir -p /tmp/scripts \
+    && echo '#!/bin/bash' > /tmp/scripts/install_sdkman.sh \
+    && echo 'SDKMAN_DIR="/root/.sdkman"' >> /tmp/scripts/install_sdkman.sh \
+    && echo 'export SDKMAN_DIR' >> /tmp/scripts/install_sdkman.sh \
+    && echo 'curl -s "https://get.sdkman.io" | bash' >> /tmp/scripts/install_sdkman.sh \
+    && echo 'if [ ! -d "$SDKMAN_DIR" ]; then' >> /tmp/scripts/install_sdkman.sh \
+    && echo '    echo "SDKMAN installation failed. Directory $SDKMAN_DIR does not exist."' >> /tmp/scripts/install_sdkman.sh \
+    && echo '    exit 1' >> /tmp/scripts/install_sdkman.sh \
+    && echo 'fi' >> /tmp/scripts/install_sdkman.sh \
+    && echo 'if [ ! -f "$SDKMAN_DIR/bin/sdkman-init.sh" ]; then' >> /tmp/scripts/install_sdkman.sh \
+    && echo '    echo "SDKMAN initialization script not found at $SDKMAN_DIR/bin/sdkman-init.sh"' >> /tmp/scripts/install_sdkman.sh \
+    && echo '    ls -la $SDKMAN_DIR/bin' >> /tmp/scripts/install_sdkman.sh \
+    && echo '    exit 1' >> /tmp/scripts/install_sdkman.sh \
+    && echo 'fi' >> /tmp/scripts/install_sdkman.sh \
+    && echo 'source "$SDKMAN_DIR/bin/sdkman-init.sh"' >> /tmp/scripts/install_sdkman.sh \
+    && echo 'sdk install java $1-open' >> /tmp/scripts/install_sdkman.sh \
+    && echo 'if [ "$2" = "true" ]; then' >> /tmp/scripts/install_sdkman.sh \
+    && echo '    sdk install kotlin $3' >> /tmp/scripts/install_sdkman.sh \
+    && echo 'fi' >> /tmp/scripts/install_sdkman.sh \
+    # Make the script executable and run it
+    && chmod +x /tmp/scripts/install_sdkman.sh \
+    && bash /tmp/scripts/install_sdkman.sh "${JAVA_VERSION}" "${INSTALL_KOTLIN}" "${VERSION_KOTLIN}" \
+    # Create the target directory and copy files
+    && mkdir -p ${SDKMAN_DIR} \
+    && cp -R /root/.sdkman/* ${SDKMAN_DIR}/ \
+    # Fix paths in configuration
+    && sed -i "s|/root/.sdkman|${SDKMAN_DIR}|g" ${SDKMAN_DIR}/etc/config \
+    # Set correct permissions
+    && chown -R ${USERNAME}:${USERNAME} ${SDKMAN_DIR} \
+    && chmod -R 755 ${SDKMAN_DIR} \
+    # Add SDKMAN to the bash environment
+    && echo "export SDKMAN_DIR=${SDKMAN_DIR}" >> /etc/bash.bashrc \
     && echo "source ${SDKMAN_DIR}/bin/sdkman-init.sh" >> /etc/bash.bashrc \
-    && echo "source ${SDKMAN_DIR}/bin/sdkman-init.sh" >> /home/${USERNAME}/.bashrc; \
+    && echo "export SDKMAN_DIR=${SDKMAN_DIR}" >> /home/${USERNAME}/.bashrc \
+    && echo "source ${SDKMAN_DIR}/bin/sdkman-init.sh" >> /home/${USERNAME}/.bashrc \
+    # Cleanup
+    && rm -rf /tmp/scripts \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*; \
     fi
 
 # [Option] Install GVM and Go
 ARG INSTALL_GO="false"
 ARG VERSION_GO="1.20.4"
-ENV GVM_DIR=/root/.gvm
+ENV GVM_DIR=/usr/local/gvm
 RUN if [ "${INSTALL_GO}" = "true" ]; then \
     apt-get update && export DEBIAN_FRONTEND=noninteractive \
     && apt-get -y install bison \
     && apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/* \
-    # Download the installer script first
+    # Download the installer script first and install GVM to the default location
     && curl -s -S -L https://raw.githubusercontent.com/moovweb/gvm/master/binscripts/gvm-installer -o /tmp/gvm-installer \
     && chmod +x /tmp/gvm-installer \
+    # Install GVM to the default location (/root/.gvm) first
     && bash /tmp/gvm-installer \
     && rm /tmp/gvm-installer \
-    # Create the target directory and copy GVM files there if installed elsewhere
-    && mkdir -p /usr/local/gvm \
-    && cp -R /root/.gvm/* /usr/local/gvm/ \
-    # Source and use GVM
-    && bash -c "source ${GVM_DIR}/scripts/gvm && gvm install go${VERSION_GO} -B && gvm use go${VERSION_GO} --default" \
+    # Then copy it to our desired location
+    && mkdir -p ${GVM_DIR} \
+    && cp -R /root/.gvm/* ${GVM_DIR}/ \
+    # Set correct permissions
+    && chown -R ${USERNAME}:${USERNAME} ${GVM_DIR} \
+    && chmod -R 755 ${GVM_DIR} \
+    # Create a temporary script to source GVM and install Go
+    && mkdir -p /tmp/scripts \
+    && echo '#!/bin/bash' > /tmp/scripts/install_go.sh \
+    && echo "source ${GVM_DIR}/scripts/gvm" >> /tmp/scripts/install_go.sh \
+    && echo "gvm install go${VERSION_GO} -B" >> /tmp/scripts/install_go.sh \
+    && echo "gvm use go${VERSION_GO} --default" >> /tmp/scripts/install_go.sh \
+    && chmod +x /tmp/scripts/install_go.sh \
+    && bash -c "/tmp/scripts/install_go.sh" \
+    # Add GVM to the bash environment
+    && echo "export GVM_DIR=${GVM_DIR}" >> /etc/bash.bashrc \
     && echo "source ${GVM_DIR}/scripts/gvm" >> /etc/bash.bashrc \
-    && echo "source ${GVM_DIR}/scripts/gvm" >> /home/${USERNAME}/.bashrc; \
+    && echo "export GVM_DIR=${GVM_DIR}" >> /home/${USERNAME}/.bashrc \
+    && echo "source ${GVM_DIR}/scripts/gvm" >> /home/${USERNAME}/.bashrc \
+    # Cleanup
+    && rm -rf /tmp/scripts; \
     fi
 
 # [Option] Install RSVM and Rust
