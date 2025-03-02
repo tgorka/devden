@@ -1,9 +1,12 @@
 {
+  // Editor behavior settings
   "editor.formatOnSave": true,
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "explicit"
   },
   "editor.defaultFormatter": "esbenp.prettier-vscode",
+
+  // File handling settings
   "files.eol": "\n",
   "files.insertFinalNewline": true,
   "files.trimTrailingWhitespace": true,
@@ -14,6 +17,8 @@
     "**/.DS_Store": true,
     "**/dist": true
   },
+
+  // Language-specific formatting
   "[javascript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
@@ -26,57 +31,73 @@
   "[markdown]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
+
+  // Workspace appearance
+  "workbench.iconTheme": "material-icon-theme",
+  "material-icon-theme.folders.theme": "specific",
+  "material-icon-theme.activeIconPack": "react",
+
+  // Code navigation and quality tools
+  "todo-tree.general.tags": [
+    "BUG",
+    "HACK",
+    "FIXME",
+    "TODO",
+    "XXX",
+    "NOTE"
+  ],
+  "todo-tree.highlights.defaultHighlight": {
+    "foreground": "white",
+    "background": "#ffbd2a",
+    "icon": "alert",
+    "rulerColour": "#ffbd2a",
+    "type": "text"
+  },
+  "bookmarks.saveBookmarksInProject": true,
+  "color-highlight.markerType": "underline",
+
+  // Markdown configuration
+  "markdownlint.config": {
+    "default": true,
+    "MD024": { "allow_different_nesting": true },
+    "MD025": false,
+    "MD033": false
+  },
+
+  // API development tools
+  "rest-client.previewResponseInUntitledDocument": true,
+  "rest-client.enableTelemetry": false,
+
+  // Development servers
+  "liveServer.settings.donotShowInfoMsg": true,
+  "liveServer.settings.donotVerifyTags": true,
+
+  // Diagram tools
+  "hediet.vscode-drawio.theme": "automatic",
+
+  // Git configuration
+  "git-graph.date.format": "DD MMM YYYY, HH:mm",
+
+  // Collaboration settings
+  "liveshare.presence": true,
+
+  // Common words for spell checking
+  // Consider periodically reviewing this list to remove unnecessary entries
   "cSpell.words": [
-    "addgroup",
-    "adduser",
-    "autopep",
-    "autoremove",
-    "bierner",
-    "chsh",
-    "dbaeumer",
-    "debugpy",
     "devcontainers",
     "devden",
-    "donjayamanne",
-    "dpkg",
-    "eamodio",
-    "errorlens",
-    "esbenp",
-    "githistory",
-    "githubcli",
-    "htmlcov",
-    "intellicode",
-    "jerrygoyal",
-    "keyrings",
-    "kohler",
-    "libbz",
-    "libncurses",
-    "libncursesw",
-    "libreadline",
-    "libsqlite",
-    "linuxbrew",
-    "miniconda",
-    "mypy",
-    "njsproj",
-    "noninteractive",
-    "NOPASSWD",
-    "ntvs",
-    "OHMYZSH",
-    "procps",
-    "pycache",
-    "Pylance",
+    "eslint",
+    "kubernetes",
+    "minikube",
+    "nvm",
+    "ohmyzsh",
     "pylint",
     "pytest",
-    "remotehub",
-    "rustup",
+    "rsvm",
+    "sdkman",
     "setuptools",
-    "shellenv",
-    "technote",
     "tgorka",
-    "tzdata",
-    "usernamehw",
-    "visualstudioexptteam",
-    "vscodeintellicode",
-    "yzhang"
+    "venv",
+    "vscode"
   ]
 }

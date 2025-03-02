@@ -2,12 +2,13 @@
 // https://github.com/microsoft/vscode-dev-containers/tree/v0.187.0/containers/python-3
 // https://intellij-support.jetbrains.com/hc/en-us/community/posts/19485533579794-Trying-to-use-Dev-Containers-IDE-Backend-keeps-re-downloading-but-never-installs
 {
-	"name": "devden-0.0.4",
+	"name": "devden-0.0.5",
 	"dockerComposeFile": "compose.yaml",
-	"service": "devden-service-0.0.4",
+	"service": "devden-service-0.0.5",
 	"workspaceFolder": "/workspace/devden",
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
+	// Uncomment and set specific ports if your application needs to expose any
 	"forwardPorts": [],
 
 	// Use 'postCreateCommand' to run commands after the container is created.
@@ -30,7 +31,8 @@
 		"GVM_DIR": "/usr/local/gvm",
 		"RSVM_DIR": "/usr/local/rsvm",
 		"BUN_INSTALL": "/usr/local/share/bun",
-		"PATH": "${containerEnv:PATH}:${containerEnv:NVM_DIR}/versions/node/v22/bin:${containerEnv:CONDA_DIR}/bin:${containerEnv:BUN_INSTALL}/bin:/usr/local/bin:/home/linuxbrew/.linuxbrew/bin"
+		// Simplified PATH to improve readability and maintenance
+		"PATH": "${containerEnv:PATH}:${containerEnv:NVM_DIR}/versions/node/v22/bin:/usr/local/bin:/home/linuxbrew/.linuxbrew/bin"
 	},
 	"customizations": {
 		"vscode": {
@@ -43,54 +45,91 @@
 					}
 				},
 				"python.defaultInterpreterPath": "/opt/conda/bin/python",
-				"python.linting.enabled": true,
-				"python.linting.pylintEnabled": true,
-				"python.formatting.provider": "black",
-				"editor.formatOnSave": true,
-				"editor.codeActionsOnSave": {
-					"source.fixAll.eslint": "explicit"
+				// Updated from deprecated settings
+				"pylint.enabled": true,
+				"[python]": {
+					"editor.defaultFormatter": "ms-python.black-formatter",
+					"editor.formatOnSave": true
 				}
+				// Extension settings moved to .vscode/settings.json
 			},
 			// Add the IDs of extensions you want installed when the container is created.
+			// Extensions organized by category
 			"extensions": [
-				"github.vscode-pull-request-github",
-				"github.vscode-github-actions",
-				"github.remotehub",
-				"eamodio.gitlens",
-				"ms-azuretools.vscode-docker",
-				"ms-python.python",
-				"ms-python.debugpy",
-				"ms-python.vscode-pylance",
-				"ms-python.pylint",
-				"ms-python.autopep8",
-				"visualstudioexptteam.vscodeintellicode",
-				"visualstudioexptteam.intellicode-api-usage-examples",
-				"redhat.vscode-yaml",
-				"jerrygoyal.shortcut-menu-bar",
-				"ms-kubernetes-tools.vscode-kubernetes-tools",
-				"esbenp.prettier-vscode",
-				"donjayamanne.typescript-notebook",
-				"shd101wyy.markdown-preview-enhanced",
-				"dbaeumer.vscode-eslint",
-				"oven.bun-vscode",
-				"ms-vscode.vscode-typescript-next",
-				"christian-kohler.path-intellisense",
-				"aaron-bond.better-comments",
-				"streetsidesoftware.code-spell-checker",
-				"usernamehw.errorlens",
-				"wix.vscode-import-cost",
-				"yzhang.markdown-all-in-one",
-				"bierner.markdown-emoji",
+				// Git & GitHub
 				"donjayamanne.githistory",
-				"editorconfig.editorconfig",
-				"rust-lang.rust-analyzer",
+				"eamodio.gitlens",
+				"github.remotehub",
+				"github.vscode-github-actions",
+				"github.vscode-pull-request-github",
+				"mhutchie.git-graph",
+				"ms-vsliveshare.vsliveshare",
+
+				// Language Support
+				"dbaeumer.vscode-eslint",
+				"esbenp.prettier-vscode",
 				"golang.go",
+				"ms-python.black-formatter",
+				"ms-python.debugpy",
+				"ms-python.pylint",
+				"ms-python.python",
+				"ms-python.vscode-pylance",
+				"ms-vscode.vscode-typescript-next",
+				"oven.bun-vscode",
+				"redhat.vscode-yaml",
+				"rust-lang.rust-analyzer",
 				"vscjava.vscode-java-pack",
+				"zxh404.vscode-proto3",
+
+				// Productivity & UI
+				"aaron-bond.better-comments",
+				"alefragnani.bookmarks",
+				"christian-kohler.path-intellisense",
+				"dwtexe.cursor-stats",
+				"editorconfig.editorconfig",
+				"figma.figma-vscode-extension",
+				"gruntfuggly.todo-tree",
+				"jerrygoyal.shortcut-menu-bar",
 				"mikestead.dotenv",
-				"zxh404.vscode-proto3"
+				"naumovs.color-highlight",
+				"pkief.material-icon-theme",
+				"ritwickdey.liveserver",
+				"shivaprasanth.vscode-always-sidebar",
+				"tyriar.sort-lines",
+				"uctakeoff.vscode-counter",
+				"usernamehw.errorlens",
+				"vizzuhq.code-viz-stat",
+				"wayou.vscode-todo-highlight",
+
+				// Markdown & Documentation
+				"bierner.markdown-emoji",
+				"davidanson.vscode-markdownlint",
+				"hediet.vscode-drawio",
+				"shd101wyy.markdown-preview-enhanced",
+				"yzhang.markdown-all-in-one",
+
+				// Code Quality & Testing
+				"donjayamanne.typescript-notebook",
+				"inferrinizzard.prettier-sql-vscode",
+				"ms-vscode.makefile-tools",
+				"orta.vscode-jest",
+				"orta.vscode-react-native-storybooks",
+				"rvest.vs-code-prettier-eslint",
+				"streetsidesoftware.code-spell-checker",
+				"visualstudioexptteam.intellicode-api-usage-examples",
+				"visualstudioexptteam.vscodeintellicode",
+				"wix.vscode-import-cost",
+
+				// API & Development Tools
+				"humao.rest-client",
+				"ms-azuretools.vscode-docker",
+				"ms-kubernetes-tools.vscode-kubernetes-tools",
+				"ms-playwright.playwright",
+				"rangav.vscode-thunder-client"
 			]
 		}
 	},
+	// Consider if all these features are needed - they add to container build time
 	"features": {
 		"ghcr.io/devcontainers/features/docker-in-docker:2": {},
 		"ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {},
