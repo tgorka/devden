@@ -1,0 +1,36 @@
+{
+  "name": "devden",
+  "version": "1.0.0",
+  "description": "The secret lair where all development magic happens",
+  "main": "index.ts",
+  "type": "module",
+  "scripts": {
+    "setup": "bun install",
+    "start": "bun run index.ts",
+    "test": "bun test",
+    "format": "prettier --write .",
+    "lint": "eslint . --ext .js,.ts,.jsx,.tsx",
+    "dev": "bun --watch index.ts",
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "devcontainer",
+    "development",
+    "configuration"
+  ],
+  "author": "tgorka",
+  "email": "tomasz@gorka.org.pl",
+  "devDependencies": {
+    "@types/node": "^20.11.10",
+    "@typescript-eslint/eslint-plugin": "^6.19.1",
+    "@typescript-eslint/parser": "^6.19.1",
+    "bun-types": "latest",
+    "eslint": "^8.57.0",
+    "prettier": "^3.2.5",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+  },
+  "module": "index.ts"
+}

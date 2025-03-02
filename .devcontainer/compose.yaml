@@ -1,6 +1,6 @@
 services:
-  tgnotes-service-1.1.2:
-    image: tgnotes-image-1.1.2
+  devden-service-0.0.1:
+    image: devden-image-0.0.1
     build:
       context: .
       dockerfile: Dockerfile
@@ -13,10 +13,10 @@ services:
     command: sleep infinity
     # code and config volumes mount
     volumes:
-      - ..:/workspace/tgnotes:cached
-      - tgnotes-node_modules:/workspace/tgnotes/node_modules
+      - ..:/workspace/devden:cached
+      - devden-node_modules:/workspace/devden/node_modules
       - /var/run/docker.sock:/var/run/docker.sock
 
 volumes:
-  tgnotes-node_modules:
-    name: "tgnotes-node_modules-volume"
+  devden-node_modules:
+    name: "devden-node_modules-volume"

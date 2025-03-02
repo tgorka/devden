@@ -1,0 +1,62 @@
+{
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "files.eol": "\n",
+  "files.insertFinalNewline": true,
+  "files.trimTrailingWhitespace": true,
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/bower_components": true,
+    "**/.git": true,
+    "**/.DS_Store": true,
+    "**/dist": true
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[markdown]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "cSpell.words": [
+    "autopep",
+    "bierner",
+    "dbaeumer",
+    "debugpy",
+    "devcontainers",
+    "devden",
+    "donjayamanne",
+    "eamodio",
+    "errorlens",
+    "esbenp",
+    "githistory",
+    "htmlcov",
+    "intellicode",
+    "jerrygoyal",
+    "kohler",
+    "mypy",
+    "njsproj",
+    "noninteractive",
+    "NOPASSWD",
+    "ntvs",
+    "pycache",
+    "Pylance",
+    "pylint",
+    "pytest",
+    "remotehub",
+    "technote",
+    "tgorka",
+    "usernamehw",
+    "visualstudioexptteam",
+    "vscodeintellicode",
+    "yzhang"
+  ]
+}
