@@ -47,7 +47,7 @@
     "NOTE"
   ],
   "todo-tree.highlights.defaultHighlight": {
-    "foreground": "white",
+    "foreground": "#ffffff",
     "background": "#ffbd2a",
     "icon": "alert",
     "rulerColour": "#ffbd2a",
@@ -59,7 +59,7 @@
   // Markdown configuration
   "markdownlint.config": {
     "default": true,
-    "MD024": { "allow_different_nesting": true },
+    "MD024": false,
     "MD025": false,
     "MD033": false
   },
@@ -76,7 +76,7 @@
   "hediet.vscode-drawio.theme": "automatic",
 
   // Git configuration
-  "git-graph.date.format": "DD MMM YYYY, HH:mm",
+  "git-graph.date.format": "Date & Time",
 
   // Collaboration settings
   "liveshare.presence": true,
@@ -84,19 +84,36 @@
   // Common words for spell checking
   // Consider periodically reviewing this list to remove unnecessary entries
   "cSpell.words": [
+    "autoremove",
     "devcontainers",
     "devden",
+    "dpkg",
     "eslint",
+    "getent",
+    "githubcli",
+    "ipython",
+    "keyrings",
     "kubernetes",
+    "libbz",
+    "libncurses",
+    "libncursesw",
+    "libreadline",
+    "libsqlite",
+    "linuxbrew",
+    "miniconda",
     "minikube",
+    "noninteractive",
     "nvm",
     "ohmyzsh",
+    "procps",
     "pylint",
     "pytest",
     "rsvm",
     "sdkman",
     "setuptools",
+    "shellenv",
     "tgorka",
+    "usermod",
     "venv",
     "vscode"
   ]

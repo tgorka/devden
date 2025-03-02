@@ -117,6 +117,14 @@ ARG INSTALL_DOCKER="false"
 RUN if [ "${INSTALL_DOCKER}" = "true" ]; then \
     apt-get update && export DEBIAN_FRONTEND=noninteractive \
     && apt-get -y install docker.io docker-compose \
+    # Add the vscode user to the docker group to avoid permission issues
+    && if getent group docker >/dev/null; then \
+       usermod -aG docker ${USERNAME}; \
+    fi \
+    # Ensure docker.sock has appropriate permissions if it exists
+    && if [ -e /var/run/docker.sock ]; then \
+       chmod 666 /var/run/docker.sock || true; \
+    fi \
     && apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*; \
     fi
 

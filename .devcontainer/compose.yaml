@@ -30,7 +30,8 @@ services:
         INSTALL_DENO: "true"
         VERSION_DENO: "1.40.5"
 
-        # Docker configuration
+        # Docker configuration - set to "false" if you don't need Docker functionality
+        # This must be "true" if you want to use Docker inside the container
         INSTALL_DOCKER: "true"
 
         # Java/Kotlin configuration with sdkman
@@ -72,6 +73,7 @@ services:
     volumes:
       - ..:/workspace/devden:cached
       - devden-node_modules:/workspace/devden/node_modules
+      # For Docker-in-Docker functionality - ensure this matches permissions in postStartCommand
       - /var/run/docker.sock:/var/run/docker.sock
 
     environment:
