@@ -1,0 +1,26 @@
+# Project exclude paths
+/.idea/workspace.xml
+/.idea/dataSources
+
+#python
+*.pyc
+/.mypy_cache
+
+#node
+/node_modules
+
+#typescript
+/dist
+
+#docker
+/docker-compose.override.yml
+
+#env
+.env
+
+#logs
+/logs
+
+#mac
+.DS_Store
+

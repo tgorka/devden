@@ -1,0 +1,81 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the README at:
+// https://github.com/microsoft/vscode-dev-containers/tree/v0.187.0/containers/python-3
+// https://intellij-support.jetbrains.com/hc/en-us/community/posts/19485533579794-Trying-to-use-Dev-Containers-IDE-Backend-keeps-re-downloading-but-never-installs
+{
+	"name": "tgnotes-1.1.2",
+	"dockerComposeFile": [
+    	"compose.yaml"
+  	],
+  	"service": "tgnotes-service-1.1.2",
+	"workspaceFolder": "/workspace/tgnotes",
+
+	// Use 'forwardPorts' to make a list of ports inside the container available locally.
+	// "forwardPorts": [],
+
+	// Use 'postCreateCommand' to run commands after the container is created.
+	// "postCreateCommand": "pip3 install --user -r requirements.txt",
+	// prevent ubious git ownership
+	"postCreateCommand": {
+		"node_modules": "sudo chown -Rf ${remoteUser}:${remoteUser} node_modules"
+	},
+	"postStartCommand": {
+		"docker": "sudo chown -Rf ${remoteUser}:${remoteUser} /var/run/docker.sock",
+		"git": "git config --global --add safe.directory ${containerWorkspaceFolder}"
+	},
+
+	// Comment out connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
+	"remoteUser": "vscode",
+	"customizations": {
+		"vscode": {
+			// Set *default* container specific settings.json values on container create.
+			"settings": { 
+				"python.defaultInterpreterPath": "/usr/local/bin/python",
+				"python.languageServer": "Pylance",
+				"python.linting.enabled": true,
+				"python.formatting.autopep8Path": "/usr/local/py-utils/bin/autopep8",
+				"python.formatting.blackPath": "/usr/local/py-utils/bin/black",
+				"python.formatting.yapfPath": "/usr/local/py-utils/bin/yapf",
+				"python.linting.banditPath": "/usr/local/py-utils/bin/bandit",
+				"python.linting.flake8Path": "/usr/local/py-utils/bin/flake8",
+				"python.linting.mypyPath": "/usr/local/py-utils/bin/mypy",
+				"python.linting.pycodestylePath": "/usr/local/py-utils/bin/pycodestyle",
+				"python.linting.pydocstylePath": "/usr/local/py-utils/bin/pydocstyle",
+				"python.linting.pylintPath": "/usr/local/py-utils/bin/pylint",
+				"ShortcutMenuBar.beautify": true,
+				"ShortcutMenuBar.openFilesList": true,
+				"ShortcutMenuBar.save": true,
+				"ShortcutMenuBar.toggleTerminal": true,
+				"search.exclude": {
+					"**/node_modules": true,
+					"**/bower_components": true,
+					"**/.mypy_cache": true
+				}
+			},
+			// Add the IDs of extensions you want installed when the container is created.
+			"extensions": [
+				"github.vscode-pull-request-github",
+				"github.remotehub",
+				"eamodio.gitlens",
+				"ms-azuretools.vscode-docker",
+				"ms-python.python",
+				"ms-python.debugpy",
+				"ms-python.vscode-pylance",
+				"ms-python.pylint",
+				"ms-python.autopep8",
+				"visualstudioexptteam.vscodeintellicode",
+				"visualstudioexptteam.intellicode-api-usage-examples",
+				"redhat.vscode-yaml",
+				"jerrygoyal.shortcut-menu-bar",
+				"esbenp.prettier-vscode",
+				"donjayamanne.typescript-notebook",
+				"shd101wyy.markdown-preview-enhanced"
+			]
+		},
+		"jetbrains": {
+			"settings": {
+				"Docker:app:DockerSettings.dockerComposePath": "/usr/local/bin/docker",
+				"Docker:app:DockerSettings.dockerPath": "/usr/local/bin/docker"
+			}
+		}
+	}
+}
