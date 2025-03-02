@@ -179,34 +179,33 @@ RUN if [ "${INSTALL_GO}" = "true" ]; then \
     apt-get update && export DEBIAN_FRONTEND=noninteractive \
     && apt-get -y install bison \
     && apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/* \
-    # Create GVM directory with correct permissions first
+    # Create GVM directory with correct permissions
     && mkdir -p ${GVM_DIR} \
     && chown -R ${USERNAME}:${USERNAME} ${GVM_DIR} \
     && chmod -R 755 ${GVM_DIR} \
-    # Use a custom installation to install GVM directly to the correct location
-    && git clone https://github.com/moovweb/gvm ${GVM_DIR} \
-    # Install Go binaries directly
-    && su ${USERNAME} -c "cd ${GVM_DIR} && ./binscripts/gvm-installer" \
-    # Fix any remaining references to /root/.gvm in the scripts
-    && find ${GVM_DIR} -type f -exec sed -i -e "s|/root/.gvm|${GVM_DIR}|g" {} \; \
-    # Create a shell script to install Go
+    # Install GVM in user's home directory first (default location)
+    && su ${USERNAME} -c "bash -c 'curl -sSL https://raw.githubusercontent.com/moovweb/gvm/master/binscripts/gvm-installer | bash'" \
+    # Create Go installation script
     && { \
         echo '#!/bin/bash'; \
-        echo "source ${GVM_DIR}/scripts/gvm"; \
+        echo "source /home/${USERNAME}/.gvm/scripts/gvm"; \
         echo "gvm install go${VERSION_GO} -B"; \
         echo "gvm use go${VERSION_GO} --default"; \
     } > /tmp/install_go.sh \
     && chmod +x /tmp/install_go.sh \
     # Install Go as the vscode user
     && su ${USERNAME} -c "bash /tmp/install_go.sh" \
+    # Create symlink from /usr/local/gvm to /home/vscode/.gvm
+    && rm -rf ${GVM_DIR} \
+    && ln -sf /home/${USERNAME}/.gvm ${GVM_DIR} \
     # Add GVM to the bash environment
-    && echo "export GVM_DIR=${GVM_DIR}" >> /etc/bash.bashrc \
-    && echo "source ${GVM_DIR}/scripts/gvm" >> /etc/bash.bashrc \
-    && echo "export GVM_DIR=${GVM_DIR}" >> /home/${USERNAME}/.bashrc \
-    && echo "source ${GVM_DIR}/scripts/gvm" >> /home/${USERNAME}/.bashrc \
+    && echo "export GVM_DIR=/home/${USERNAME}/.gvm" >> /etc/bash.bashrc \
+    && echo "source /home/${USERNAME}/.gvm/scripts/gvm" >> /etc/bash.bashrc \
+    && echo "export GVM_DIR=/home/${USERNAME}/.gvm" >> /home/${USERNAME}/.bashrc \
+    && echo "source /home/${USERNAME}/.gvm/scripts/gvm" >> /home/${USERNAME}/.bashrc \
     # Ensure all files have the correct ownership and permissions
-    && chown -R ${USERNAME}:${USERNAME} ${GVM_DIR} \
-    && chmod -R 755 ${GVM_DIR} \
+    && chown -R ${USERNAME}:${USERNAME} /home/${USERNAME}/.gvm \
+    && chmod -R 755 /home/${USERNAME}/.gvm \
     # Cleanup
     && rm -f /tmp/install_go.sh; \
     fi

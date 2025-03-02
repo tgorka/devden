@@ -12,7 +12,7 @@
 	// Use 'postCreateCommand' to run commands after the container is created.
 	// "postCreateCommand": "pip3 install --user -r requirements.txt",
 	// prevent git ownership
-	"postCreateCommand": "echo 'source ${NVM_DIR}/nvm.sh' >> ~/.bashrc && echo 'export PYTHON_ROOT=\"${PYTHON_ROOT}\" && export PATH=\"${PYTHON_ROOT}/bin:$PATH\"' >> ~/.bashrc && echo 'export BUN_INSTALL=\"/usr/local/share/bun\" && export PATH=\"$BUN_INSTALL/bin:$PATH\"' >> ~/.bashrc && echo 'eval \"$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)\" 2>/dev/null || true' >> ~/.bashrc && echo 'export SDKMAN_DIR=\"${SDKMAN_DIR}\" && source ${SDKMAN_DIR}/bin/sdkman-init.sh' >> ~/.bashrc && echo 'export GVM_DIR=\"${GVM_DIR}\" && source ${GVM_DIR}/scripts/gvm' >> ~/.bashrc && echo 'source ${RSVM_DIR}/rsvm.sh' >> ~/.bashrc",
+	"postCreateCommand": "echo 'source ${NVM_DIR}/nvm.sh' >> ~/.bashrc && echo 'export PYTHON_ROOT=\"${PYTHON_ROOT}\" && export PATH=\"${PYTHON_ROOT}/bin:$PATH\"' >> ~/.bashrc && echo 'export BUN_INSTALL=\"/usr/local/share/bun\" && export PATH=\"$BUN_INSTALL/bin:$PATH\"' >> ~/.bashrc && echo 'eval \"$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)\" 2>/dev/null || true' >> ~/.bashrc && echo 'export SDKMAN_DIR=\"${SDKMAN_DIR}\" && source ${SDKMAN_DIR}/bin/sdkman-init.sh' >> ~/.bashrc && echo 'export GVM_DIR=\"/home/vscode/.gvm\" && source /home/vscode/.gvm/scripts/gvm' >> ~/.bashrc && echo 'source ${RSVM_DIR}/rsvm.sh' >> ~/.bashrc",
 	"postStartCommand": {
 		// Make the Docker socket permission change more robust with error handling
 		"docker-permissions": "if [ -e /var/run/docker.sock ]; then sudo chown -Rf ${remoteUser}:${remoteUser} /var/run/docker.sock || true; else echo 'Docker socket not found. Skipping permission change.'; fi",
@@ -20,7 +20,7 @@
 		"git-user-name": "git config --global user.name \"tgorka\"",
 		"git-user-email": "git config --global user.email \"tomasz@gorka.org.pl\"",
 		// Fix permissions for SDKMAN and GVM directories with improved error handling
-		"fix-permissions": "echo 'Fixing permissions for development directories...' && for dir in ${SDKMAN_DIR} ${GVM_DIR} ${RSVM_DIR} ${NVM_DIR}; do if [ -d \"$dir\" ]; then echo \"Setting permissions for $dir\"; sudo chown -R ${remoteUser}:${remoteUser} \"$dir\" 2>/dev/null || true; sudo chmod -R 755 \"$dir\" 2>/dev/null || true; else echo \"Directory $dir does not exist, skipping\"; fi; done",
+		"fix-permissions": "echo 'Fixing permissions for development directories...' && for dir in ${SDKMAN_DIR} /home/vscode/.gvm ${RSVM_DIR} ${NVM_DIR}; do if [ -d \"$dir\" ]; then echo \"Setting permissions for $dir\"; sudo chown -R ${remoteUser}:${remoteUser} \"$dir\" 2>/dev/null || true; sudo chmod -R 755 \"$dir\" 2>/dev/null || true; else echo \"Directory $dir does not exist, skipping\"; fi; done",
 		// Verify environment configuration
 		"verify-env": "/usr/local/bin/verify-env || echo 'Verification script completed with errors'"
 	},
@@ -31,7 +31,7 @@
 		"NVM_DIR": "/usr/local/share/nvm",
 		"CONDA_DIR": "/opt/conda",
 		"SDKMAN_DIR": "/usr/local/sdkman",
-		"GVM_DIR": "/usr/local/gvm",
+		"GVM_DIR": "/home/vscode/.gvm",
 		"RSVM_DIR": "/usr/local/rsvm",
 		"BUN_INSTALL": "/usr/local/share/bun",
 		// Simplified PATH to improve readability and maintenance
