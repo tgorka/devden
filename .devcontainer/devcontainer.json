@@ -13,7 +13,7 @@
 	// Use 'postCreateCommand' to run commands after the container is created.
 	// "postCreateCommand": "pip3 install --user -r requirements.txt",
 	// prevent git ownership
-	"postCreateCommand": "echo 'source ${NVM_DIR}/nvm.sh' >> ~/.bashrc && echo 'eval \"$(pyenv init -)\"' >> ~/.bashrc && echo 'export BUN_INSTALL=\"/usr/local/share/bun\" && export PATH=\"$BUN_INSTALL/bin:$PATH\"' >> ~/.bashrc",
+	"postCreateCommand": "echo 'source ${NVM_DIR}/nvm.sh' >> ~/.bashrc && echo 'export PYTHON_ROOT=\"${PYTHON_ROOT}\" && export PATH=\"${PYTHON_ROOT}/bin:$PATH\"' >> ~/.bashrc && echo 'export BUN_INSTALL=\"/usr/local/share/bun\" && export PATH=\"$BUN_INSTALL/bin:$PATH\"' >> ~/.bashrc && echo 'eval \"$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)\" 2>/dev/null || true' >> ~/.bashrc && echo 'source ${SDKMAN_DIR}/bin/sdkman-init.sh' >> ~/.bashrc && echo 'source ${GVM_DIR}/scripts/gvm' >> ~/.bashrc && echo 'source ${RSVM_DIR}/rsvm.sh' >> ~/.bashrc",
 	"postStartCommand": {
 		"docker": "sudo chown -Rf ${remoteUser}:${remoteUser} /var/run/docker.sock",
 		"git": "git config --global --add safe.directory ${containerWorkspaceFolder}",
@@ -25,9 +25,12 @@
 	"remoteUser": "vscode",
 	"remoteEnv": {
 		"NVM_DIR": "/usr/local/share/nvm",
-		"PYENV_ROOT": "/usr/local/pyenv",
+		"CONDA_DIR": "/opt/conda",
+		"SDKMAN_DIR": "/usr/local/sdkman",
+		"GVM_DIR": "/usr/local/gvm",
+		"RSVM_DIR": "/usr/local/rsvm",
 		"BUN_INSTALL": "/usr/local/share/bun",
-		"PATH": "${containerEnv:PATH}:${containerEnv:NVM_DIR}/versions/node/v20/bin:${containerEnv:PYENV_ROOT}/shims:${containerEnv:BUN_INSTALL}/bin:/usr/local/bin"
+		"PATH": "${containerEnv:PATH}:${containerEnv:NVM_DIR}/versions/node/v22/bin:${containerEnv:CONDA_DIR}/bin:${containerEnv:BUN_INSTALL}/bin:/usr/local/bin:/home/linuxbrew/.linuxbrew/bin"
 	},
 	"customizations": {
 		"vscode": {
@@ -39,7 +42,7 @@
 						"path": "/bin/bash"
 					}
 				},
-				"python.defaultInterpreterPath": "/usr/local/pyenv/shims/python",
+				"python.defaultInterpreterPath": "/opt/conda/bin/python",
 				"python.linting.enabled": true,
 				"python.linting.pylintEnabled": true,
 				"python.formatting.provider": "black",

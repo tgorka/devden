@@ -8,12 +8,13 @@ services:
         USERNAME: vscode
         USER_UID: 1000
         USER_GID: 1000
-        # Python configuration with pyenv
+        VARIANT: "debian-12"
+        # Python configuration with miniconda
         INSTALL_PYTHON: "true"
-        PYTHON_VERSION: "3.11"
+        VERSION_PYTHON: "3.12"
         # Node.js configuration with nvm
         INSTALL_NODE: "true"
-        NODE_VERSION: "20"
+        NODE_VERSION: "22"
         # Bun configuration
         INSTALL_BUN: "true"
         VERSION_BUN: "1.0.35"
@@ -22,15 +23,17 @@ services:
         VERSION_DENO: "1.40.5"
         # Docker configuration
         INSTALL_DOCKER: "true"
-        # Java configuration
+        # Java/Kotlin configuration with sdkman
         INSTALL_JAVA: "true"
-        VERSION_JAVA: "17"
-        # Go configuration
+        JAVA_VERSION: "23"
+        INSTALL_KOTLIN: "true"
+        VERSION_KOTLIN: "1.9.22"
+        # Go configuration with gvm
         INSTALL_GO: "true"
-        VERSION_GO: "1.22.2"
-        # Rust configuration
+        VERSION_GO: "1.20.4"
+        # Rust configuration with rsvm
         INSTALL_RUST: "true"
-        VERSION_RUST: "stable"
+        VERSION_RUST: "1.76.0"
         # Oh My Zsh configuration
         INSTALL_OHMYZSH: "true"
         # Kubernetes tools configuration
@@ -38,6 +41,8 @@ services:
         VERSION_KUBECTL: "v1.29.0"
         INSTALL_MINIKUBE: "true"
         VERSION_MINIKUBE: "v1.32.0"
+        # Homebrew configuration
+        INSTALL_HOMEBREW: "true"
     # ports to see the web result
     #ports:
     #  - "8080:8080"
@@ -51,9 +56,12 @@ services:
     environment:
       # Pass environment variables to container
       NVM_DIR: /usr/local/share/nvm
-      PYENV_ROOT: /usr/local/pyenv
+      PYTHON_ROOT: /usr/local/python
+      SDKMAN_DIR: /usr/local/sdkman
+      GVM_DIR: /usr/local/gvm
+      RSVM_DIR: /usr/local/rsvm
       BUN_INSTALL: /usr/local/share/bun
-      PATH: ${PATH}:/usr/local/share/nvm/versions/node/v20/bin:/usr/local/pyenv/shims:/usr/local/share/bun/bin:/usr/local/bin/deno
+      PATH: ${PATH}:/usr/local/share/nvm/versions/node/v22/bin:/usr/local/python/bin:/usr/local/share/bun/bin:/usr/local/bin/deno:/home/linuxbrew/.linuxbrew/bin
 
 volumes:
   devden-node_modules:
