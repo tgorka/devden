@@ -1,11 +1,43 @@
 services:
-  devden-service-0.0.1:
-    image: devden-image-0.0.1
+  devden-service-0.0.4:
+    image: devden-image-0.0.4
     build:
       context: .
       dockerfile: Dockerfile
       args:
         USERNAME: vscode
+        USER_UID: 1000
+        USER_GID: 1000
+        # Python configuration with pyenv
+        INSTALL_PYTHON: "true"
+        PYTHON_VERSION: "3.11"
+        # Node.js configuration with nvm
+        INSTALL_NODE: "true"
+        NODE_VERSION: "20"
+        # Bun configuration
+        INSTALL_BUN: "true"
+        VERSION_BUN: "1.0.35"
+        # Deno configuration
+        INSTALL_DENO: "true"
+        VERSION_DENO: "1.40.5"
+        # Docker configuration
+        INSTALL_DOCKER: "true"
+        # Java configuration
+        INSTALL_JAVA: "true"
+        VERSION_JAVA: "17"
+        # Go configuration
+        INSTALL_GO: "true"
+        VERSION_GO: "1.22.2"
+        # Rust configuration
+        INSTALL_RUST: "true"
+        VERSION_RUST: "stable"
+        # Oh My Zsh configuration
+        INSTALL_OHMYZSH: "true"
+        # Kubernetes tools configuration
+        INSTALL_KUBECTL: "true"
+        VERSION_KUBECTL: "v1.29.0"
+        INSTALL_MINIKUBE: "true"
+        VERSION_MINIKUBE: "v1.32.0"
     # ports to see the web result
     #ports:
     #  - "8080:8080"
@@ -16,6 +48,12 @@ services:
       - ..:/workspace/devden:cached
       - devden-node_modules:/workspace/devden/node_modules
       - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      # Pass environment variables to container
+      NVM_DIR: /usr/local/share/nvm
+      PYENV_ROOT: /usr/local/pyenv
+      BUN_INSTALL: /usr/local/share/bun
+      PATH: ${PATH}:/usr/local/share/nvm/versions/node/v20/bin:/usr/local/pyenv/shims:/usr/local/share/bun/bin:/usr/local/bin/deno
 
 volumes:
   devden-node_modules:

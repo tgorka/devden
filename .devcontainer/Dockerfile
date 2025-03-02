@@ -1,66 +1,191 @@
-# See here for image contents: https://github.com/microsoft/vscode-dev-containers/tree/v0.187.0/containers/python-3/.devcontainer/base.Dockerfile
-# https://github.com/devcontainers/images/blob/main/src/typescript-node/.devcontainer/Dockerfile
-# https://github.com/devcontainers/templates/blob/main/src/python/.devcontainer/devcontainer.json
+# DevContainer Dockerfile for Debian-based development environment
 
+# Use Microsoft's base Dev Container
+FROM mcr.microsoft.com/devcontainers/base:debian-12
 
-# [Choice] Python version: 3, 3.11, 3.10, 3.9, 3.8, 3.7, 3.6
-ARG VARIANT="3.12-bookworm"
-FROM mcr.microsoft.com/devcontainers/python:1-${VARIANT}
-#FROM mcr.microsoft.com/vscode/devcontainers/python:0-${VARIANT}
-
-ARG USERNAME="vscode"
+# Default user configuration
+ARG USERNAME=vscode
 ARG USER_UID=1000
 ARG USER_GID=$USER_UID
-# Create the user
-RUN if [ "$USERNAME" != "vscode" ]; then groupadd --gid $USER_GID $USERNAME \
-    && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME; fi
-RUN if [ "$USER_GID" != "1000" ] || [ "$USER_UID" != "1000" ]; then groupmod --gid $USER_GID $USERNAME && usermod --uid $USER_UID --gid $USER_GID $USERNAME; fi
-# [Optional] Add sudo support. Omit if you don't need to install software after connecting.
-RUN if [ "$USER_GID" != "1000" ] || [ "$USER_UID" != "1000" ]; then apt-get update \
-    && apt-get install -y sudo \
-    && echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
-    && chmod 0440 /etc/sudoers.d/$USERNAME; fi
 
-# [Option] Install Node.js
+# Additional installations and configurations
+USER root
+
+# Install basic tools and dependencies
+RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
+    && apt-get -y install --no-install-recommends \
+    apt-utils \
+    build-essential \
+    libssl-dev \
+    zlib1g-dev \
+    libbz2-dev \
+    libreadline-dev \
+    libsqlite3-dev \
+    curl \
+    wget \
+    llvm \
+    libncurses5-dev \
+    libncursesw5-dev \
+    xz-utils \
+    tk-dev \
+    libffi-dev \
+    liblzma-dev \
+    git \
+    ca-certificates \
+    gnupg \
+    lsb-release \
+    nano \
+    vim \
+    unzip \
+    sudo \
+    zsh \
+    && apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*
+
+# Install GitHub CLI if not already installed
+RUN if ! [ -x "$(command -v gh)" ]; then \
+    curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
+    && chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
+    && apt-get update \
+    && apt-get install gh -y; \
+    fi
+
+# [Option] Install nvm and Node.js
 ARG INSTALL_NODE="true"
-# lts/*, 20.17.0
-ARG NODE_VERSION="22.7.0"
-RUN if [ "${INSTALL_NODE}" = "true" ]; then su $USERNAME -c "umask 0002 && . /usr/local/share/nvm/nvm.sh && nvm install ${NODE_VERSION} 2>&1"; fi
+ARG NODE_VERSION="20"
+ENV NVM_DIR=/usr/local/share/nvm
+RUN if [ "${INSTALL_NODE}" = "true" ]; then \
+    mkdir -p ${NVM_DIR} \
+    && curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash \
+    && . ${NVM_DIR}/nvm.sh \
+    && nvm install ${NODE_VERSION} \
+    && nvm alias default ${NODE_VERSION} \
+    && nvm use default \
+    && npm install -g npm yarn typescript ts-node @types/node; \
+    fi
 
-# Install tslint, typescript. eslint is installed by javascript image
-ARG NODE_MODULES="tslint-to-eslint-config typescript ts-node @types/node yarn"
-RUN if [ "${INSTALL_NODE}" = "true" ]; then su $USERNAME -c "umask 0002 && npm install -g ${NODE_MODULES}" \
-    && npm cache clean --force > /dev/null 2>&1; fi
+# [Option] Install pyenv and Python
+ARG INSTALL_PYTHON="true"
+ARG PYTHON_VERSION="3.11"
+ENV PYENV_ROOT /usr/local/pyenv
+RUN if [ "${INSTALL_PYTHON}" = "true" ]; then \
+    git clone https://github.com/pyenv/pyenv.git ${PYENV_ROOT} \
+    && cd ${PYENV_ROOT} && src/configure && make -C src \
+    && echo 'export PYENV_ROOT="/usr/local/pyenv"' >> /etc/bash.bashrc \
+    && echo 'export PATH="$PYENV_ROOT/bin:$PATH"' >> /etc/bash.bashrc \
+    && echo 'eval "$(pyenv init -)"' >> /etc/bash.bashrc \
+    && export PYENV_ROOT="/usr/local/pyenv" \
+    && export PATH="$PYENV_ROOT/bin:$PATH" \
+    && eval "$(pyenv init -)" \
+    && pyenv install ${PYTHON_VERSION} \
+    && pyenv global ${PYTHON_VERSION} \
+    && pip install --upgrade pip setuptools wheel; \
+    fi
+
+# [Option] Install Bun
+ARG INSTALL_BUN="true"
+ARG VERSION_BUN="1.0.35"
+RUN if [ "${INSTALL_BUN}" = "true" ]; then \
+    curl -fsSL https://bun.sh/install | bash \
+    && mv /root/.bun /usr/local/share/bun \
+    && chown -R ${USERNAME}:${USERNAME} /usr/local/share/bun \
+    && echo 'export BUN_INSTALL="/usr/local/share/bun"' >> /etc/bash.bashrc \
+    && echo 'export PATH="$BUN_INSTALL/bin:$PATH"' >> /etc/bash.bashrc \
+    && ln -s /usr/local/share/bun/bin/bun /usr/local/bin/bun; \
+    fi
+
+# [Option] Install Deno
+ARG INSTALL_DENO="true"
+ARG VERSION_DENO="1.40.5"
+RUN if [ "${INSTALL_DENO}" = "true" ]; then \
+    curl -fsSL https://deno.land/install.sh | DENO_INSTALL=/usr/local sh -s v${VERSION_DENO} \
+    && ln -s /usr/local/bin/deno /usr/bin/deno; \
+    fi
 
 # [Option] Install Docker client
 ARG INSTALL_DOCKER="true"
-# Let's start with some basic stuff.
-RUN if [ "${INSTALL_DOCKER}" = "true" ]; then apt-get update -qq && apt-get install -qqy \
-    apt-transport-https \
-    ca-certificates \
-    curl \
-    lxc \
-    iptables; fi
-# Install Docker from Docker Inc. repositories.
-RUN if [ "${INSTALL_DOCKER}" = "true" ]; then curl -sSL https://get.docker.com/ | sh; fi
+RUN if [ "${INSTALL_DOCKER}" = "true" ]; then \
+    apt-get update && export DEBIAN_FRONTEND=noninteractive \
+    && apt-get -y install docker.io docker-compose \
+    && apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*; \
+    fi
 
+# [Option] Install Java
+ARG INSTALL_JAVA="true"
+ARG VERSION_JAVA="17"
+RUN if [ "${INSTALL_JAVA}" = "true" ]; then \
+    apt-get update && export DEBIAN_FRONTEND=noninteractive \
+    && apt-get -y install openjdk-${VERSION_JAVA}-jdk maven gradle \
+    && apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*; \
+    fi
 
-# [Option] Install Docker client
-ARG INSTALL_DENO="true"
-ARG DENO_VERSION="v1.40.5"
-RUN if [ "${INSTALL_DENO}" = "true" ]; then curl -fsSL https://deno.land/install.sh | DENO_INSTALL=/usr/local sh -s ${DENO_VERSION}; fi
+# [Option] Install Go
+ARG INSTALL_GO="true"
+ARG VERSION_GO="1.22.2"
+RUN if [ "${INSTALL_GO}" = "true" ]; then \
+    wget https://golang.org/dl/go${VERSION_GO}.linux-amd64.tar.gz \
+    && tar -C /usr/local -xzf go${VERSION_GO}.linux-amd64.tar.gz \
+    && rm go${VERSION_GO}.linux-amd64.tar.gz \
+    && echo "export PATH=$PATH:/usr/local/go/bin" >> /etc/bash.bashrc; \
+    fi
 
-# [Optional] If your pip requirements rarely change, uncomment this section to add them to the image.
-# COPY requirements.txt /tmp/pip-tmp/
-# RUN pip3 --disable-pip-version-check --no-cache-dir install -r /tmp/pip-tmp/requirements.txt \
-#    && rm -rf /tmp/pip-tmp
+# [Option] Install Rust
+ARG INSTALL_RUST="true"
+ARG VERSION_RUST="stable"
+RUN if [ "${INSTALL_RUST}" = "true" ]; then \
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain ${VERSION_RUST} --no-modify-path \
+    && echo "export PATH=/root/.cargo/bin:$PATH" >> /etc/bash.bashrc \
+    && echo "export PATH=/home/${USERNAME}/.cargo/bin:$PATH" >> /home/${USERNAME}/.bashrc; \
+    fi
 
-# [Optional] Uncomment this section to install additional OS packages.
-# RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
-#     && apt-get -y install --no-install-recommends <your-package-list-here>
+# [Option] Install oh-my-zsh
+ARG INSTALL_OHMYZSH="true"
+RUN if [ "${INSTALL_OHMYZSH}" = "true" ]; then \
+    if [ ! -d "/root/.oh-my-zsh" ]; then \
+        sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended; \
+    fi \
+    && if [ ! -d "/home/${USERNAME}/.oh-my-zsh" ]; then \
+        mkdir -p /home/${USERNAME}/.oh-my-zsh \
+        && cp -R /root/.oh-my-zsh/* /home/${USERNAME}/.oh-my-zsh/ \
+        && cp /root/.zshrc /home/${USERNAME}/.zshrc 2>/dev/null || echo "No .zshrc found to copy" \
+        && chown -R ${USERNAME}:${USERNAME} /home/${USERNAME}/.oh-my-zsh /home/${USERNAME}/.zshrc 2>/dev/null || true; \
+    fi \
+    && echo "exec zsh" >> /home/${USERNAME}/.bashrc; \
+    fi
 
-# [Optional] Uncomment this line to install global node packages.
-# RUN su ${USERNAME} -c "source /usr/local/share/nvm/nvm.sh && npm install -g <your-package-here>" 2>&1
+# [Option] Install kubectl
+ARG INSTALL_KUBECTL="true"
+ARG VERSION_KUBECTL="v1.29.0"
+RUN if [ "${INSTALL_KUBECTL}" = "true" ]; then \
+    curl -LO "https://dl.k8s.io/release/${VERSION_KUBECTL}/bin/linux/amd64/kubectl" \
+    && chmod +x kubectl \
+    && mv kubectl /usr/local/bin/; \
+    fi
 
-# [Optional] Set the default user. Omit if you want to keep the default as root.
-USER $USERNAME
+# [Option] Install minikube
+ARG INSTALL_MINIKUBE="true"
+ARG VERSION_MINIKUBE="v1.32.0"
+RUN if [ "${INSTALL_MINIKUBE}" = "true" ]; then \
+    curl -LO https://storage.googleapis.com/minikube/releases/${VERSION_MINIKUBE}/minikube-linux-amd64 \
+    && chmod +x minikube-linux-amd64 \
+    && mv minikube-linux-amd64 /usr/local/bin/minikube; \
+    fi
+
+# Make environment configuration available for all users
+RUN echo "source ${NVM_DIR}/nvm.sh" >> /etc/bash.bashrc \
+    && chmod -R a+w ${NVM_DIR} \
+    && chmod -R a+w ${PYENV_ROOT} \
+    && echo 'export BUN_INSTALL="/usr/local/share/bun"' >> /etc/bash.bashrc \
+    && echo 'export PATH="$BUN_INSTALL/bin:$PATH"' >> /etc/bash.bashrc \
+    && echo 'export PATH="/usr/local/bin/deno:$PATH"' >> /etc/bash.bashrc
+
+# Setup environment variables
+ENV PATH="/usr/local/bin:${PATH}"
+ENV SHELL="/bin/bash"
+ENV LANG="C.UTF-8"
+
+# Set default user
+USER ${USERNAME}
+WORKDIR /workspace/devden
+
+CMD ["/bin/bash"]

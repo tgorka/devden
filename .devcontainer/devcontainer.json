@@ -2,11 +2,9 @@
 // https://github.com/microsoft/vscode-dev-containers/tree/v0.187.0/containers/python-3
 // https://intellij-support.jetbrains.com/hc/en-us/community/posts/19485533579794-Trying-to-use-Dev-Containers-IDE-Backend-keeps-re-downloading-but-never-installs
 {
-	"name": "devden-0.0.1",
-	"dockerComposeFile": [
-    	"compose.yaml"
-  	],
-  	"service": "devden-service-0.0.1",
+	"name": "devden-0.0.4",
+	"dockerComposeFile": "compose.yaml",
+	"service": "devden-service-0.0.4",
 	"workspaceFolder": "/workspace/devden",
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
@@ -15,10 +13,7 @@
 	// Use 'postCreateCommand' to run commands after the container is created.
 	// "postCreateCommand": "pip3 install --user -r requirements.txt",
 	// prevent git ownership
-	"postCreateCommand": {
-		"node_modules": "sudo chown -Rf ${remoteUser}:${remoteUser} node_modules",
-		"bun-install": "cd ${containerWorkspaceFolder} && bun install"
-	},
+	"postCreateCommand": "echo 'source ${NVM_DIR}/nvm.sh' >> ~/.bashrc && echo 'eval \"$(pyenv init -)\"' >> ~/.bashrc && echo 'export BUN_INSTALL=\"/usr/local/share/bun\" && export PATH=\"$BUN_INSTALL/bin:$PATH\"' >> ~/.bashrc",
 	"postStartCommand": {
 		"docker": "sudo chown -Rf ${remoteUser}:${remoteUser} /var/run/docker.sock",
 		"git": "git config --global --add safe.directory ${containerWorkspaceFolder}",
@@ -28,47 +23,27 @@
 
 	// Comment out connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
 	"remoteUser": "vscode",
+	"remoteEnv": {
+		"NVM_DIR": "/usr/local/share/nvm",
+		"PYENV_ROOT": "/usr/local/pyenv",
+		"BUN_INSTALL": "/usr/local/share/bun",
+		"PATH": "${containerEnv:PATH}:${containerEnv:NVM_DIR}/versions/node/v20/bin:${containerEnv:PYENV_ROOT}/shims:${containerEnv:BUN_INSTALL}/bin:/usr/local/bin"
+	},
 	"customizations": {
 		"vscode": {
 			// Set *default* container specific settings.json values on container create.
 			"settings": {
-				"python.defaultInterpreterPath": "/usr/local/bin/python",
-				"python.languageServer": "Pylance",
+				"terminal.integrated.defaultProfile.linux": "bash",
+				"terminal.integrated.profiles.linux": {
+					"bash": {
+						"path": "/bin/bash"
+					}
+				},
+				"python.defaultInterpreterPath": "/usr/local/pyenv/shims/python",
 				"python.linting.enabled": true,
-				"python.formatting.autopep8Path": "/usr/local/py-utils/bin/autopep8",
-				"python.formatting.blackPath": "/usr/local/py-utils/bin/black",
-				"python.formatting.yapfPath": "/usr/local/py-utils/bin/yapf",
-				"python.linting.banditPath": "/usr/local/py-utils/bin/bandit",
-				"python.linting.flake8Path": "/usr/local/py-utils/bin/flake8",
-				"python.linting.mypyPath": "/usr/local/py-utils/bin/mypy",
-				"python.linting.pycodestylePath": "/usr/local/py-utils/bin/pycodestyle",
-				"python.linting.pydocstylePath": "/usr/local/py-utils/bin/pydocstyle",
-				"python.linting.pylintPath": "/usr/local/py-utils/bin/pylint",
-				"ShortcutMenuBar.beautify": true,
-				"ShortcutMenuBar.openFilesList": true,
-				"ShortcutMenuBar.save": true,
-				"ShortcutMenuBar.toggleTerminal": true,
-				"search.exclude": {
-					"**/node_modules": true,
-					"**/bower_components": true,
-					"**/.git": true,
-					"**/.DS_Store": true,
-					"**/dist": true,
-					"**/.mypy_cache": true
-				},
-				"files.associations": {
-					"*.ts": "typescript",
-					"*.tsx": "typescriptreact",
-					"*.js": "javascript",
-					"*.jsx": "javascriptreact"
-				},
-				"typescript.tsdk": "node_modules/typescript/lib",
-				"javascript.updateImportsOnFileMove.enabled": "always",
-				"typescript.updateImportsOnFileMove.enabled": "always",
-				"javascript.suggest.completeFunctionCalls": true,
-				"typescript.suggest.completeFunctionCalls": true,
+				"python.linting.pylintEnabled": true,
+				"python.formatting.provider": "black",
 				"editor.formatOnSave": true,
-				"editor.defaultFormatter": "esbenp.prettier-vscode",
 				"editor.codeActionsOnSave": {
 					"source.fixAll.eslint": "explicit"
 				}
@@ -89,6 +64,7 @@
 				"visualstudioexptteam.intellicode-api-usage-examples",
 				"redhat.vscode-yaml",
 				"jerrygoyal.shortcut-menu-bar",
+				"ms-kubernetes-tools.vscode-kubernetes-tools",
 				"esbenp.prettier-vscode",
 				"donjayamanne.typescript-notebook",
 				"shd101wyy.markdown-preview-enhanced",
@@ -103,8 +79,21 @@
 				"yzhang.markdown-all-in-one",
 				"bierner.markdown-emoji",
 				"donjayamanne.githistory",
-				"editorconfig.editorconfig"
+				"editorconfig.editorconfig",
+				"rust-lang.rust-analyzer",
+				"golang.go",
+				"vscjava.vscode-java-pack",
+				"mikestead.dotenv",
+				"zxh404.vscode-proto3"
 			]
+		}
+	},
+	"features": {
+		"ghcr.io/devcontainers/features/docker-in-docker:2": {},
+		"ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {},
+		"ghcr.io/devcontainers-contrib/features/zsh-plugins:0": {
+			"plugins": "git z zsh-syntax-highlighting zsh-autosuggestions",
+			"omzPlugins": "https://github.com/zsh-users/zsh-syntax-highlighting https://github.com/zsh-users/zsh-autosuggestions"
 		}
 	}
 }
