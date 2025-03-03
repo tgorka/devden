@@ -1,0 +1,94 @@
+services:
+  devden-service-0.0.9:
+    image: devden-image-0.0.9
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # Base configuration
+        USERNAME: vscode
+        USER_UID: 1000
+        USER_GID: 1000
+        VARIANT: "debian-12"
+
+        # Language installation flags and versions
+        # Consider disabling languages you don't need to speed up container build
+
+        # Python configuration with miniconda
+        INSTALL_PYTHON: "true"
+        VERSION_PYTHON: "3.12"
+
+        # Node.js configuration with nvm
+        INSTALL_NODE: "true"
+        NODE_VERSION: "22"
+
+        # Bun configuration
+        INSTALL_BUN: "true"
+        VERSION_BUN: "1.0.35"
+
+        # Deno configuration
+        INSTALL_DENO: "true"
+        VERSION_DENO: "1.40.5"
+
+        # Docker configuration - set to "false" if you don't need Docker functionality
+        # This must be "true" if you want to use Docker inside the container
+        INSTALL_DOCKER: "true"
+
+        # Java/Kotlin configuration with sdkman
+        INSTALL_JAVA: "true"
+        VERSION_JAVA: "23"
+        INSTALL_KOTLIN: "true"
+        VERSION_KOTLIN: "1.9.22"
+
+        # Go configuration with gvm
+        INSTALL_GO: "true"
+        VERSION_GO: "1.20.4"
+
+        # Rust configuration with rsvm
+        INSTALL_RUST: "true"
+        VERSION_RUST: "1.76.0"
+
+        # Oh My Zsh configuration
+        INSTALL_OHMYZSH: "true"
+
+        # Kubernetes tools configuration
+        INSTALL_KUBECTL: "true"
+        VERSION_KUBECTL: "v1.29.0"
+        INSTALL_MINIKUBE: "true"
+        VERSION_MINIKUBE: "v1.32.0"
+
+        # Homebrew configuration
+        INSTALL_HOMEBREW: "true"
+
+    # Uncomment to expose web application ports
+    # Set specific ports based on your application needs
+    # Format: "host_port:container_port"
+    #ports:
+    #  - "8080:8080"  # Example for a web application
+
+    # Overrides default command so things don't shut down after the process ends.
+    command: sleep infinity
+
+    # code and config volumes mount
+    volumes:
+      - ..:/workspace/devden:cached
+      - devden-node_modules:/workspace/devden/node_modules
+      # For Docker-in-Docker functionality - ensure this matches permissions in postStartCommand
+      - /var/run/docker.sock:/var/run/docker.sock
+
+    environment:
+      # Environment variable configuration
+      # Language-specific paths
+      NVM_DIR: /usr/local/share/nvm
+      PYTHON_ROOT: /usr/local/python
+      SDKMAN_DIR: /usr/local/sdkman
+      GVM_DIR: /usr/local/gvm
+      RSVM_DIR: /usr/local/rsvm
+      BUN_INSTALL: /usr/local/share/bun
+
+      # PATH includes all installed language bins
+      PATH: ${PATH}:/usr/local/share/nvm/versions/node/v22/bin:/usr/local/python/bin:/usr/local/share/bun/bin:/usr/local/bin/deno:/home/linuxbrew/.linuxbrew/bin
+
+volumes:
+  devden-node_modules:
+    name: "devden-node_modules-volume"

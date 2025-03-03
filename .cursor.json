@@ -1,0 +1,11 @@
+{
+  "version": "1.0.0",
+  "configurationVersion": "0.0.1",
+  "codeGenerationModel": "claude-3-7-sonnet-thinking",
+  "autoShowCursorChat": true,
+  "enableAutoCodeSuggestions": true,
+  "autoEnableIntellisense": true,
+  "staleDelay": 500,
+  "includePathsInSymbolSearch": true,
+  "enableChatIndent": true
+}

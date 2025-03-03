@@ -1,0 +1,143 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the README at:
+{
+	"name": "devden-0.0.9",
+	"dockerComposeFile": "compose.yaml",
+	"service": "devden-service-0.0.9",
+	"workspaceFolder": "/workspace/devden",
+
+	// Use 'forwardPorts' to make a list of ports inside the container available locally.
+	// Uncomment and set specific ports if your application needs to expose any
+	"forwardPorts": [],
+
+	// Use 'postCreateCommand' to run commands after the container is created.
+	"postCreateCommand": "chmod +x .devcontainer/setup-env.sh && ./.devcontainer/setup-env.sh || echo 'Environment setup failed'",
+
+	"postStartCommand": {
+		// Setup Git configuration with a separate script
+		"setup-git": "chmod +x .devcontainer/setup-git.sh && ./.devcontainer/setup-git.sh || true",
+		// Run the fix environment script first
+		"fix-environment": "chmod +x .devcontainer/fix-environment.sh && ./.devcontainer/fix-environment.sh || true",
+		// Verify environment configuration
+		"verify-env": "if [ -f /usr/local/bin/verify-env ]; then /usr/local/bin/verify-env || echo 'Verification script completed with errors'; else echo 'Verification script not found'; fi"
+	},
+
+	// Comment out connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
+	"remoteUser": "vscode",
+	"remoteEnv": {
+		"NVM_DIR": "/usr/local/share/nvm",
+		"CONDA_DIR": "/opt/conda",
+		"SDKMAN_DIR": "/usr/local/sdkman",
+		"GVM_DIR": "/home/vscode/.gvm",
+		"RSVM_DIR": "/usr/local/rsvm",
+		"BUN_INSTALL": "/usr/local/share/bun",
+		// Simplified PATH to improve readability and maintenance
+		"PATH": "${containerEnv:PATH}:${containerEnv:NVM_DIR}/versions/node/v22/bin:/usr/local/bin:/home/linuxbrew/.linuxbrew/bin"
+	},
+	"customizations": {
+		"vscode": {
+			// Set *default* container specific settings.json values on container create.
+			"settings": {
+				"terminal.integrated.defaultProfile.linux": "bash",
+				"terminal.integrated.profiles.linux": {
+					"bash": {
+						"path": "/bin/bash"
+					}
+				},
+				"python.defaultInterpreterPath": "/opt/conda/bin/python",
+				// Updated from deprecated settings
+				"pylint.enabled": true,
+				"[python]": {
+					"editor.defaultFormatter": "ms-python.black-formatter",
+					"editor.formatOnSave": true
+				},
+				// Configure cursor-stats to run locally instead of in container
+				"remote.extensionKind": {
+					"dwtexe.cursor-stats": ["ui"]
+				}
+				// Extension settings moved to .vscode/settings.json
+			},
+			// Add the IDs of extensions you want installed when the container is created.
+			// Extensions organized by category
+			"extensions": [
+				// Git & GitHub
+				"donjayamanne.githistory",
+				"eamodio.gitlens",
+				"github.remotehub",
+				"github.vscode-github-actions",
+				"github.vscode-pull-request-github",
+				"mhutchie.git-graph",
+				"ms-vsliveshare.vsliveshare",
+
+				// Language Support
+				"dbaeumer.vscode-eslint",
+				"esbenp.prettier-vscode",
+				"golang.go",
+				"ms-python.black-formatter",
+				"ms-python.debugpy",
+				"ms-python.pylint",
+				"ms-python.python",
+				"ms-python.vscode-pylance",
+				"ms-vscode.vscode-typescript-next",
+				"oven.bun-vscode",
+				"redhat.vscode-yaml",
+				"rust-lang.rust-analyzer",
+				"vscjava.vscode-java-pack",
+				"zxh404.vscode-proto3",
+
+				// Productivity & UI
+				"aaron-bond.better-comments",
+				"alefragnani.bookmarks",
+				"christian-kohler.path-intellisense",
+				// Cursor-stats is configured to run in UI mode via remote.extensionKind setting
+				"dwtexe.cursor-stats",
+				"editorconfig.editorconfig",
+				"figma.figma-vscode-extension",
+				"gruntfuggly.todo-tree",
+				"jerrygoyal.shortcut-menu-bar",
+				"mikestead.dotenv",
+				"naumovs.color-highlight",
+				"pkief.material-icon-theme",
+				"ritwickdey.liveserver",
+				"shivaprasanth.vscode-always-sidebar",
+				"tyriar.sort-lines",
+				"uctakeoff.vscode-counter",
+				"usernamehw.errorlens",
+				"vizzuhq.code-viz-stat",
+				"wayou.vscode-todo-highlight",
+
+				// Markdown & Documentation
+				"bierner.markdown-emoji",
+				"davidanson.vscode-markdownlint",
+				"hediet.vscode-drawio",
+				"shd101wyy.markdown-preview-enhanced",
+				"yzhang.markdown-all-in-one",
+
+				// Code Quality & Testing
+				"donjayamanne.typescript-notebook",
+				"inferrinizzard.prettier-sql-vscode",
+				"ms-vscode.makefile-tools",
+				"orta.vscode-jest",
+				"orta.vscode-react-native-storybooks",
+				"rvest.vs-code-prettier-eslint",
+				"streetsidesoftware.code-spell-checker",
+				"wix.vscode-import-cost",
+
+				// API & Development Tools
+				"humao.rest-client",
+				"ms-azuretools.vscode-docker",
+				"ms-kubernetes-tools.vscode-kubernetes-tools",
+				"ms-playwright.playwright",
+				"rangav.vscode-thunder-client"
+			]
+		}
+	},
+	// Consider if all these features are needed - they add to container build time
+	"features": {
+		"ghcr.io/devcontainers/features/docker-in-docker:2": {},
+		"ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {},
+		"ghcr.io/devcontainers-contrib/features/zsh-plugins:0": {
+			"plugins": "git z zsh-syntax-highlighting zsh-autosuggestions",
+			"omzPlugins": "https://github.com/zsh-users/zsh-syntax-highlighting https://github.com/zsh-users/zsh-autosuggestions"
+		}
+	}
+}
