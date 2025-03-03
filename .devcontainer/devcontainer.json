@@ -10,21 +10,15 @@
 	"forwardPorts": [],
 
 	// Use 'postCreateCommand' to run commands after the container is created.
-	// "postCreateCommand": "pip3 install --user -r requirements.txt",
-	// prevent git ownership
-	"postCreateCommand": "echo 'source ${NVM_DIR}/nvm.sh' >> ~/.bashrc && echo 'export PYTHON_ROOT=\"${PYTHON_ROOT}\" && export PATH=\"${PYTHON_ROOT}/bin:$PATH\"' >> ~/.bashrc && echo 'export BUN_INSTALL=\"/usr/local/share/bun\" && export PATH=\"$BUN_INSTALL/bin:$PATH\"' >> ~/.bashrc && echo 'eval \"$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)\" 2>/dev/null || true' >> ~/.bashrc && echo 'export SDKMAN_DIR=\"${SDKMAN_DIR}\" && [[ -s \"${SDKMAN_DIR}/bin/sdkman-init.sh\" ]] && source ${SDKMAN_DIR}/bin/sdkman-init.sh || [[ -s \"${HOME}/.sdkman/bin/sdkman-init.sh\" ]] && source ${HOME}/.sdkman/bin/sdkman-init.sh || true' >> ~/.bashrc && echo 'export GVM_DIR=\"${GVM_DIR}\" && [[ -s \"${GVM_DIR}/scripts/gvm\" ]] && source ${GVM_DIR}/scripts/gvm || true' >> ~/.bashrc && echo '[[ -s \"${RSVM_DIR}/rsvm.sh\" ]] && source ${RSVM_DIR}/rsvm.sh || true' >> ~/.bashrc",
+	"postCreateCommand": "chmod +x .devcontainer/setup-env.sh && ./.devcontainer/setup-env.sh || echo 'Environment setup failed'",
+
 	"postStartCommand": {
-		// Make the Docker socket permission change more robust with error handling
-		"docker-permissions": "if [ -e /var/run/docker.sock ]; then sudo chown -Rf ${remoteUser}:${remoteUser} /var/run/docker.sock || true; else echo 'Docker socket not found. Skipping permission change.'; fi",
-		"git": "git config --global --add safe.directory ${containerWorkspaceFolder}",
-		"git-user-name": "git config --global user.name \"tgorka\"",
-		"git-user-email": "git config --global user.email \"tomasz@gorka.org.pl\"",
+		// Setup Git configuration with a separate script
+		"setup-git": "chmod +x .devcontainer/setup-git.sh && ./.devcontainer/setup-git.sh || true",
 		// Run the fix environment script first
 		"fix-environment": "chmod +x .devcontainer/fix-environment.sh && ./.devcontainer/fix-environment.sh || true",
-		// Fix permissions for SDKMAN and GVM directories with improved error handling
-		"fix-permissions": "echo 'Fixing permissions for development directories...' && for dir in ${SDKMAN_DIR} /home/vscode/.gvm ${RSVM_DIR} ${NVM_DIR}; do if [ -d \"$dir\" ]; then echo \"Setting permissions for $dir\"; sudo chown -R ${remoteUser}:${remoteUser} \"$dir\" 2>/dev/null || true; sudo chmod -R 755 \"$dir\" 2>/dev/null || true; else echo \"Directory $dir does not exist, skipping\"; fi; done",
 		// Verify environment configuration
-		"verify-env": "/usr/local/bin/verify-env || echo 'Verification script completed with errors'"
+		"verify-env": "if [ -f /usr/local/bin/verify-env ]; then /usr/local/bin/verify-env || echo 'Verification script completed with errors'; else echo 'Verification script not found'; fi"
 	},
 
 	// Comment out connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
