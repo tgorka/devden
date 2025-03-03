@@ -1,6 +1,6 @@
 services:
-  devden-service-0.0.5:
-    image: devden-image-0.0.5
+  devden-service-0.0.7:
+    image: devden-image-0.0.7
     build:
       context: .
       dockerfile: Dockerfile
