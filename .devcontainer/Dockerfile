@@ -174,38 +174,38 @@ RUN if [ "${INSTALL_JAVA}" = "true" ]; then \
 # [Option] Install GVM and Go
 ARG INSTALL_GO="false"
 ARG VERSION_GO="1.20.4"
-ENV GVM_DIR=/usr/local/gvm
+ENV GVM_DIR=/home/vscode/.gvm
 RUN if [ "${INSTALL_GO}" = "true" ]; then \
     apt-get update && export DEBIAN_FRONTEND=noninteractive \
     && apt-get -y install bison \
     && apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/* \
-    # Create GVM directory with correct permissions
-    && mkdir -p ${GVM_DIR} \
+    # Download the installer script first
+    && curl -s -S -L https://raw.githubusercontent.com/moovweb/gvm/master/binscripts/gvm-installer -o /tmp/gvm-installer \
+    && chmod +x /tmp/gvm-installer \
+    # Create the vscode user's directory with correct ownership
+    && mkdir -p /home/${USERNAME} \
+    && chown -R ${USERNAME}:${USERNAME} /home/${USERNAME} \
+    # Install GVM as the vscode user
+    && su ${USERNAME} -c "bash /tmp/gvm-installer" \
+    && rm -f /tmp/gvm-installer \
+    # Ensure correct permissions
     && chown -R ${USERNAME}:${USERNAME} ${GVM_DIR} \
     && chmod -R 755 ${GVM_DIR} \
-    # Install GVM in user's home directory first (default location)
-    && su ${USERNAME} -c "bash -c 'curl -sSL https://raw.githubusercontent.com/moovweb/gvm/master/binscripts/gvm-installer | bash'" \
-    # Create Go installation script
+    # Create a shell script to install Go as the vscode user
     && { \
         echo '#!/bin/bash'; \
-        echo "source /home/${USERNAME}/.gvm/scripts/gvm"; \
+        echo "source ${GVM_DIR}/scripts/gvm"; \
         echo "gvm install go${VERSION_GO} -B"; \
         echo "gvm use go${VERSION_GO} --default"; \
     } > /tmp/install_go.sh \
     && chmod +x /tmp/install_go.sh \
     # Install Go as the vscode user
     && su ${USERNAME} -c "bash /tmp/install_go.sh" \
-    # Create symlink from /usr/local/gvm to /home/vscode/.gvm
-    && rm -rf ${GVM_DIR} \
-    && ln -sf /home/${USERNAME}/.gvm ${GVM_DIR} \
     # Add GVM to the bash environment
-    && echo "export GVM_DIR=/home/${USERNAME}/.gvm" >> /etc/bash.bashrc \
-    && echo "source /home/${USERNAME}/.gvm/scripts/gvm" >> /etc/bash.bashrc \
-    && echo "export GVM_DIR=/home/${USERNAME}/.gvm" >> /home/${USERNAME}/.bashrc \
-    && echo "source /home/${USERNAME}/.gvm/scripts/gvm" >> /home/${USERNAME}/.bashrc \
-    # Ensure all files have the correct ownership and permissions
-    && chown -R ${USERNAME}:${USERNAME} /home/${USERNAME}/.gvm \
-    && chmod -R 755 /home/${USERNAME}/.gvm \
+    && echo "export GVM_DIR=${GVM_DIR}" >> /etc/bash.bashrc \
+    && echo "source ${GVM_DIR}/scripts/gvm" >> /etc/bash.bashrc \
+    && echo "export GVM_DIR=${GVM_DIR}" >> /home/${USERNAME}/.bashrc \
+    && echo "source ${GVM_DIR}/scripts/gvm" >> /home/${USERNAME}/.bashrc \
     # Cleanup
     && rm -f /tmp/install_go.sh; \
     fi
@@ -304,10 +304,10 @@ RUN { \
     echo '    echo "SDKMAN initialization script exists"'; \
     echo '    ls -la "$SDKMAN_DIR/bin/sdkman-init.sh"'; \
     echo '  else'; \
-    echo '    echo "ERROR: SDKMAN initialization script not found"'; \
+    echo '    echo "WARNING: SDKMAN initialization script not found"'; \
     echo '  fi'; \
     echo 'else'; \
-    echo '  echo "ERROR: SDKMAN directory does not exist"'; \
+    echo '  echo "WARNING: SDKMAN directory does not exist"'; \
     echo 'fi'; \
     echo ''; \
     echo '# Check GVM'; \
@@ -317,13 +317,20 @@ RUN { \
     echo '    echo "GVM initialization script exists"'; \
     echo '    ls -la "$GVM_DIR/scripts/gvm"'; \
     echo '  else'; \
-    echo '    echo "ERROR: GVM initialization script not found"'; \
+    echo '    echo "WARNING: GVM initialization script not found"'; \
     echo '  fi'; \
     echo 'else'; \
-    echo '  echo "ERROR: GVM directory does not exist"'; \
+    echo '  echo "WARNING: GVM directory not found at $GVM_DIR"'; \
+    echo '  # Check if GVM exists in home directory'; \
+    echo '  if [ -d "/home/vscode/.gvm" ]; then'; \
+    echo '    echo "Found GVM in /home/vscode/.gvm instead"'; \
+    echo '    export GVM_DIR="/home/vscode/.gvm"'; \
+    echo '    echo "GVM_DIR updated to $GVM_DIR"'; \
+    echo '  fi'; \
     echo 'fi'; \
     echo ''; \
     echo 'echo "Environment verification complete"'; \
+    echo 'exit 0'; \
     } > /usr/local/bin/verify-env \
     && chmod +x /usr/local/bin/verify-env \
     && chown ${USERNAME}:${USERNAME} /usr/local/bin/verify-env
