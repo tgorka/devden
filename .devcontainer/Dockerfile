@@ -130,13 +130,19 @@ RUN if [ "${INSTALL_DOCKER}" = "true" ]; then \
 
 # [Option] Install SDKMAN and Java/Kotlin
 ARG INSTALL_JAVA="false"
-ARG JAVA_VERSION="23"
+ARG VERSION_JAVA="23"
 ARG INSTALL_KOTLIN="false"
 ARG VERSION_KOTLIN="1.9.22"
+
+# Export ARGs to ENV variables so they're available at runtime
+ENV INSTALL_JAVA=${INSTALL_JAVA}
+ENV VERSION_JAVA=${VERSION_JAVA}
+ENV INSTALL_KOTLIN=${INSTALL_KOTLIN}
+ENV VERSION_KOTLIN=${VERSION_KOTLIN}
 ENV SDKMAN_DIR=/usr/local/sdkman
-RUN if [ "${INSTALL_JAVA}" = "true" ]; then \
-    # Install dependencies needed by SDKMAN
-    apt-get update && apt-get install -y zip unzip \
+
+# Install SDKMAN only
+RUN apt-get update && apt-get install -y zip unzip \
     # Create SDKMAN directory with correct permissions first
     && mkdir -p ${SDKMAN_DIR} \
     && chown -R ${USERNAME}:${USERNAME} ${SDKMAN_DIR} \
@@ -147,11 +153,6 @@ RUN if [ "${INSTALL_JAVA}" = "true" ]; then \
         echo "export SDKMAN_DIR=${SDKMAN_DIR}"; \
         echo 'curl -s "https://get.sdkman.io" | bash'; \
         echo "sed -i -e 's|/home/${USERNAME}/.sdkman|${SDKMAN_DIR}|g' ${SDKMAN_DIR}/etc/config"; \
-        echo "source ${SDKMAN_DIR}/bin/sdkman-init.sh"; \
-        echo "sdk install java ${JAVA_VERSION}-open"; \
-        echo "if [ \"${INSTALL_KOTLIN}\" = \"true\" ]; then"; \
-        echo "    sdk install kotlin ${VERSION_KOTLIN}"; \
-        echo "fi"; \
     } > /tmp/install_sdkman.sh \
     && chmod +x /tmp/install_sdkman.sh \
     # Run the installation as the vscode user
@@ -168,8 +169,12 @@ RUN if [ "${INSTALL_JAVA}" = "true" ]; then \
     && chmod -R 755 ${SDKMAN_DIR} \
     # Cleanup
     && rm -f /tmp/install_sdkman.sh \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*; \
-    fi
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Make scripts executable - using absolute paths with the build context
+COPY install-java.sh install-kotlin.sh /tmp/
+RUN chmod +x /tmp/install-java.sh /tmp/install-kotlin.sh \
+    && mv /tmp/install-java.sh /tmp/install-kotlin.sh /usr/local/bin/
 
 # [Option] Install GVM and Go
 ARG INSTALL_GO="false"

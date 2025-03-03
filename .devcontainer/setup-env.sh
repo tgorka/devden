@@ -24,4 +24,18 @@ echo 'export GVM_DIR="${GVM_DIR}" && [[ -s "${GVM_DIR}/scripts/gvm" ]] && source
 # RSVM (Rust Version Manager)
 echo '[[ -s "${RSVM_DIR}/rsvm.sh" ]] && source ${RSVM_DIR}/rsvm.sh || true' >> ~/.bashrc
 
+# Call Java installation script
+if [ -x "/usr/local/bin/install-java.sh" ]; then
+    echo "Running Java installation script..."
+    sudo chown -R vscode:vscode /usr/local/bin/install-java.sh
+    /usr/local/bin/install-java.sh
+fi
+
+# Call Kotlin installation script
+if [ -x "/usr/local/bin/install-kotlin.sh" ]; then
+    echo "Running Kotlin installation script..."
+    sudo chown -R vscode:vscode /usr/local/bin/install-kotlin.sh
+    /usr/local/bin/install-kotlin.sh
+fi
+
 echo "Environment setup complete."

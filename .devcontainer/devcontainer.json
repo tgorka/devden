@@ -1,8 +1,8 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the README at:
 {
-	"name": "devden-0.0.7",
+	"name": "devden-0.0.9",
 	"dockerComposeFile": "compose.yaml",
-	"service": "devden-service-0.0.7",
+	"service": "devden-service-0.0.9",
 	"workspaceFolder": "/workspace/devden",
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
