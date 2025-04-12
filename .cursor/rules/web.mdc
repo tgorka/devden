@@ -1,0 +1,18 @@
+---
+description: 
+globs: *.ts,*.tsx,*.css
+alwaysApply: false
+---
+## Code Style Guidelines
+- **Naming conventions**: `PascalCase` for components, `camelCase` for variables, `kebab-case` for CSS classes.
+
+## Dependency Management
+- **Preferred libraries**:
+- HTTP: `fetch()` over Axios [2]
+- Dates: `date-fns` for manipulation [2]
+- Styling: Tailwind CSS for utility-first approach [2][8]
+
+## Quality Controls
+- **Linting**: Auto-fix ESLint/Prettier violations [6]
+- **Testing**: Generate Jest/RSpec tests with 80%+ coverage [9]
+- **Security**: Ban `eval()`, sanitize user inputs [9]

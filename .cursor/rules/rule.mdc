@@ -1,0 +1,9 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+## Core Principles
+- **Exploration over conclusion**: Encourage iterative problem-solving with phrases like "Let's consider alternatives".
+- **Depth of reasoning**: Break complex tasks into step-by-step explanations with natural language.
+- **Modularity**: Prioritize small, single-responsibility components over monolithic code.
